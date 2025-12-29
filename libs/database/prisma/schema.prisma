@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  INTERN      // EL ACCESS
+  DEVELOPER   // ELCODERS
+  CLIENT      // MY SPACE
+  COMPANY     // MY SPACE (Startup)
+  LEARNER     // ELITES
+}
+
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  username        String    @unique
+  passwordHash    String
+  role            UserRole  @default(LEARNER)
+  verseScore      Int       @default(0)
+  isGatedPaid     Boolean   @default(false) // For MY SPACE entry
+  
+  wallet          Wallet?
+  posts           Post[]          // NEXEL
+  projects        Project[]       // ELCODERS / MY SPACE
+  enrollments     Enrollment[]    // ELITES
+  
+  createdAt       DateTime  @default(now())
+}
+
+model Wallet {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id])
+  wthBalance      Decimal  @default(0) @db.Decimal(18, 8)
+  escrowBalance   Decimal  @default(0) @db.Decimal(18, 8)
+  transactions    Transaction[]
+}
+
+model Project {
+  id            String   @id @default(uuid())
+  title         String
+  description   String
+  budget        Decimal  @db.Decimal(18, 8)
+  status        String   @default("OPEN") // OPEN, ACTIVE, REVIEW, COMPLETED
+  clientId      String
+  developerId   String?
+  
+  client        User     @relation(fields: [clientId], references: [id])
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  walletId    String
+  wallet      Wallet   @relation(fields: [walletId], references: [id])
+  amount      Decimal  @db.Decimal(18, 8)
+  type        String   // CREDIT, DEBIT, ESCROW_LOCK, ESCROW_RELEASE
+  appSource   String   // NEXEL, ELCODERS, etc.
+  createdAt   DateTime @default(now())
+}
+
+// Minimal placeholders for referenced models
+model Post {
+  id        String   @id @default(uuid())
+  authorId  String
+  content   String
+  author    User     @relation(fields: [authorId], references: [id])
+}
+
+model Enrollment {
+  id        String   @id @default(uuid())
+  userId    String
+  course    String
+  user      User     @relation(fields: [userId], references: [id])
+}

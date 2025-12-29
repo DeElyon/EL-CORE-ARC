@@ -1,0 +1,19 @@
+{
+  "name": "el-verse-backend",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "libs/*",
+    "services/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "start:arc-core-api": "pnpm --filter ./apps/arc-core-api... run start"
+  },
+  "devDependencies": {
+    "turbo": "^1.10.0"
+  }
+}
