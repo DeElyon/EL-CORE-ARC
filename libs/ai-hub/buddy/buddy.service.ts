@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AiCoreService } from '../ai-core.service';
-import { PrismaService } from '../../libs/database/prisma.service';
+import { PrismaService } from '@el-verse/database';
 
 @Injectable()
 export class BuddyAI {

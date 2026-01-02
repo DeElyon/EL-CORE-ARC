@@ -1,3 +1,10 @@
+import {
+  WebSocketGateway,
+  WebSocketServer,
+  SubscribeMessage,
+} from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
+
 @WebSocketGateway({ cors: true })
 export class VerseGateway {
   @WebSocketServer() server: Server;

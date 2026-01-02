@@ -90,7 +90,7 @@ export class NexelController {
   @Get('marketplace')
   @ApiOperation({ summary: 'Get marketplace items' })
   async getMarketplace(@Query('limit') limit?: number) {
-    return this.nexelService.getMarketplaceItems(limit || 20);
+    return this.nexelService.getMarketplaceItems(undefined, limit ? Number(limit) : 20);
   }
 
   @Get('trending')

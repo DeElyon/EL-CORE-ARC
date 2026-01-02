@@ -66,7 +66,7 @@ export class NexelService {
             username: true,
             avatarUrl: true,
             verseScore: true,
-            isVerified: true,
+            isBiometricVerified: true,
           },
         },
         comments: {

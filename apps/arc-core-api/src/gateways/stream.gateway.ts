@@ -9,9 +9,9 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Injectable, UseGuards } from '@nestjs/common';
-import { NexelService } from '../../../services/nexel-service/src/nexel.service';
-import { WalletEngineService } from '../../../libs/wallet-engine';
-import { NellyAI } from '../../../libs/ai-hub/nelly/nelly.service';
+import { NexelService } from '@el-verse/nexel-service';
+import { WalletEngineService } from '@el-verse/wallet-engine';
+import { NellyAI } from '@el-verse/ai-hub';
 
 @Injectable()
 @WebSocketGateway({

@@ -141,7 +141,7 @@ export class WithdrawalService {
       // TODO: Process actual payment to user's account
       // await this.processPayment(request);
 
-      return { success: true, amount: request.amount, fee: request.fee };
+      return { success: true, amount: request.amount, fee: request.fee, userId: request.userId, method: request.method };
     });
   }
 

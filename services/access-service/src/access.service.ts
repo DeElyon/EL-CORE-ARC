@@ -110,7 +110,7 @@ export class AccessService {
     });
 
     // Award stipend if task completed
-    if (task.internship.stipend > 0) {
+    if (Number(task.internship.stipend) > 0) {
       const stipendPerTask = Number(task.internship.stipend) / allTasks.length;
       await this.walletEngine.getLedger().credit(
         task.internship.internId,

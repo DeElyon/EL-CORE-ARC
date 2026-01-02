@@ -101,7 +101,7 @@ export class FundingService {
         },
       });
 
-      return { success: true, amount: request.amount };
+      return { success: true, amount: request.amount, userId: request.userId, method: request.method };
     });
   }
 

@@ -78,7 +78,7 @@ export class WalletController {
     );
 
     // Notify user
-    await this.notificationService.notifyFundingApproved(result.userId, result.amount);
+    await this.notificationService.notifyFundingApproved(result.userId, Number(result.amount));
 
     return result;
   }
@@ -153,7 +153,7 @@ export class WalletController {
     // Notify user
     await this.notificationService.notifyWithdrawalProcessed(
       result.userId,
-      result.amount,
+      Number(result.amount),
       result.method,
     );
 
