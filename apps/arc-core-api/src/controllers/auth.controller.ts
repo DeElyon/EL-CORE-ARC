@@ -6,9 +6,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { AuthBridgeService } from '../../../libs/auth-bridge/auth-bridge.service';
-import { JwtAuthGuard } from '../../../libs/auth-bridge/guards/jwt-auth.guard';
-import { CurrentUser } from '../../../libs/auth-bridge/decorators/current-user.decorator';
+import { AuthBridgeService } from '@el-verse/auth-bridge';
+import { JwtAuthGuard } from '@el-verse/auth-bridge';
+import { CurrentUser } from '@el-verse/auth-bridge';
 
 @ApiTags('Auth')
 @Controller('auth')

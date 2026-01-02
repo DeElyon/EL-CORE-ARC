@@ -4,16 +4,16 @@ import { JwtModule } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
 
 // Database
-import { PrismaService } from '../../../libs/database/prisma.service';
+import { PrismaService } from '@el-verse/database';
 
 // Auth
-import { AuthBridgeService } from '../../../libs/auth-bridge/auth-bridge.service';
-import { JwtAuthGuard } from '../../../libs/auth-bridge/guards/jwt-auth.guard';
-import { RolesGuard } from '../../../libs/auth-bridge/guards/roles.guard';
+import { AuthBridgeService } from '@el-verse/auth-bridge';
+import { JwtAuthGuard } from '@el-verse/auth-bridge';
+import { RolesGuard } from '@el-verse/auth-bridge';
 
 // Shared Utils
-import { ChatService } from '../../../libs/shared-utils/chat.service';
-import { NotificationService } from '../../../libs/shared-utils/notification.service';
+import { ChatService } from '@el-verse/shared-utils';
+import { NotificationService } from '@el-verse/shared-utils';
 
 // Wallet Engine
 import {
@@ -22,7 +22,7 @@ import {
   EscrowService,
   WithdrawalService,
   FundingService,
-} from '../../../libs/wallet-engine';
+} from '@el-verse/wallet-engine';
 
 // AI Hub
 import {
@@ -33,19 +33,19 @@ import {
   LinaAI,
   UnoAI,
   LibrarianAI,
-} from '../../../libs/ai-hub';
+} from '@el-verse/ai-hub';
 
 // Services
-import { NexelService } from '../../../services/nexel-service/src/nexel.service';
-import { NexelController } from '../../../services/nexel-service/src/nexel.controller';
-import { CodersService } from '../../../services/coders-service/src/coders.service';
-import { CodersController } from '../../../services/coders-service/src/coders.controller';
-import { AccessService } from '../../../services/access-service/src/access.service';
-import { AccessController } from '../../../services/access-service/src/access.controller';
-import { MySpaceService } from '../../../services/myspace-service/src/myspace.service';
-import { MySpaceController } from '../../../services/myspace-service/src/myspace.controller';
-import { ElitesService } from '../../../services/elites-service/src/elites.service';
-import { ElitesController } from '../../../services/elites-service/src/elites.controller';
+import { NexelService } from '@el-verse/nexel-service';
+import { NexelController } from '@el-verse/nexel-service';
+import { CodersService } from '@el-verse/coders-service';
+import { CodersController } from '@el-verse/coders-service';
+import { AccessService } from '@el-verse/access-service';
+import { AccessController } from '@el-verse/access-service';
+import { MySpaceService } from '@el-verse/myspace-service';
+import { MySpaceController } from '@el-verse/myspace-service';
+import { ElitesService } from '@el-verse/elites-service';
+import { ElitesController } from '@el-verse/elites-service';
 
 // Gateways
 import { ChatGateway } from './gateways/chat.gateway';

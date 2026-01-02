@@ -2,11 +2,6 @@
   "name": "el-verse-backend",
   "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "libs/*",
-    "services/*"
-  ],
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",

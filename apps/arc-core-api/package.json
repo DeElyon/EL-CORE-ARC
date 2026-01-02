@@ -21,7 +21,17 @@
     "bcrypt": "^5.1.0",
     "socket.io": "^4.5.0",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.8.0"
+    "rxjs": "^7.8.0",
+    "@el-verse/database": "workspace:*",
+    "@el-verse/auth-bridge": "workspace:*",
+    "@el-verse/shared-utils": "workspace:*",
+    "@el-verse/wallet-engine": "workspace:*",
+    "@el-verse/ai-hub": "workspace:*",
+    "@el-verse/nexel-service": "workspace:*",
+    "@el-verse/coders-service": "workspace:*",
+    "@el-verse/access-service": "workspace:*",
+    "@el-verse/myspace-service": "workspace:*",
+    "@el-verse/elites-service": "workspace:*"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

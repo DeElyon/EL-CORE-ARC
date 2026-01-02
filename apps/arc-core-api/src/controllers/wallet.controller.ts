@@ -8,11 +8,11 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { FundingService } from '../../../libs/wallet-engine/funding.service';
-import { WithdrawalService } from '../../../libs/wallet-engine/withdrawal.service';
-import { NotificationService } from '../../../libs/shared-utils/notification.service';
-import { JwtAuthGuard } from '../../../libs/auth-bridge/guards/jwt-auth.guard';
-import { CurrentUser } from '../../../libs/auth-bridge/decorators/current-user.decorator';
+import { FundingService } from '@el-verse/wallet-engine';
+import { WithdrawalService } from '@el-verse/wallet-engine';
+import { NotificationService } from '@el-verse/shared-utils';
+import { JwtAuthGuard } from '@el-verse/auth-bridge';
+import { CurrentUser } from '@el-verse/auth-bridge';
 import { FundingMethod, AppSource } from '@prisma/client';
 
 @ApiTags('Wallet')

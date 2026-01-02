@@ -8,9 +8,9 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { ChatService } from '../../../libs/shared-utils/chat.service';
-import { JwtAuthGuard } from '../../../libs/auth-bridge/guards/jwt-auth.guard';
-import { CurrentUser } from '../../../libs/auth-bridge/decorators/current-user.decorator';
+import { ChatService } from '@el-verse/shared-utils';
+import { JwtAuthGuard } from '@el-verse/auth-bridge';
+import { CurrentUser } from '@el-verse/auth-bridge';
 import { ChatRoomType, AppSource } from '@prisma/client';
 
 @ApiTags('Chat')

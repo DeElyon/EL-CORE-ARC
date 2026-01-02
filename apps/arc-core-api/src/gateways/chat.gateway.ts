@@ -9,8 +9,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../libs/database/prisma.service';
-import { ChatService } from '../../../libs/shared-utils/chat.service';
+import { PrismaService } from '@el-verse/database';
+import { ChatService } from '@el-verse/shared-utils';
 
 @Injectable()
 @WebSocketGateway({
