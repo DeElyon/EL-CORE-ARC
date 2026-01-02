@@ -9,10 +9,10 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { ElitesService } from './elites.service';
-import { JwtAuthGuard } from '../../../libs/auth-bridge/guards/jwt-auth.guard';
-import { RolesGuard } from '../../../libs/auth-bridge/guards/roles.guard';
-import { Roles } from '../../../libs/auth-bridge/decorators/roles.decorator';
-import { CurrentUser } from '../../../libs/auth-bridge/decorators/current-user.decorator';
+import { JwtAuthGuard } from '@el-verse/auth-bridge';
+import { RolesGuard } from '@el-verse/auth-bridge';
+import { Roles } from '@el-verse/auth-bridge';
+import { CurrentUser } from '@el-verse/auth-bridge';
 
 @ApiTags('ELITES')
 @Controller('elites')
@@ -99,9 +99,9 @@ export class ElitesController {
   // TUTOR ENDPOINTS
   // ============================================
 
-  @Post('tutor/register')
-  @ApiOperation({ summary: 'Register as tutor' })
-  async registerAsTutor(
+  @Post('tutor/become')
+  @ApiOperation({ summary: 'Become a tutor' })
+  async becomeTutor(
     @CurrentUser() user: any,
     @Body() body: {
       bio: string;
@@ -111,7 +111,7 @@ export class ElitesController {
       courses: string[];
     },
   ) {
-    return this.elitesService.registerAsTutor(
+    return this.elitesService.becomeTutor(
       user.sub,
       body.bio,
       body.experience,
@@ -159,7 +159,7 @@ export class ElitesController {
     return this.elitesService.getTutorAvailability(user.sub);
   }
 
-  @Post('classes')
+  @Post('classes/schedule')
   @ApiOperation({ summary: 'Schedule a class' })
   async scheduleClass(
     @CurrentUser() user: any,
@@ -187,29 +187,24 @@ export class ElitesController {
 
   @Get('tutor/classes')
   @ApiOperation({ summary: 'Get tutor classes' })
-  async getTutorClasses(
-    @CurrentUser() user: any,
-    @Param('status') status?: string,
-  ) {
-    return this.elitesService.getTutorClasses(user.sub, status);
+  async getTutorClasses(@CurrentUser() user: any) {
+    return this.elitesService.getTutorClasses(user.sub);
   }
 
   @Get('learner/classes')
   @ApiOperation({ summary: 'Get learner classes' })
-  async getLearnerClasses(
-    @CurrentUser() user: any,
-    @Param('status') status?: string,
-  ) {
-    return this.elitesService.getLearnerClasses(user.sub, status);
+  async getLearnerClasses(@CurrentUser() user: any) {
+    return this.elitesService.getLearnerClasses(user.sub);
   }
 
   @Put('classes/:classId/status')
   @ApiOperation({ summary: 'Update class status' })
   async updateClassStatus(
+    @CurrentUser() user: any,
     @Param('classId') classId: string,
-    @Body() body: { status: string; notes?: string },
+    @Body() body: { status: string; meetingLink?: string },
   ) {
-    return this.elitesService.updateClassStatus(classId, body.status, body.notes);
+    return this.elitesService.updateClassStatus(classId, body.status, body.meetingLink);
   }
 
   @Post('tutor/request/:learnerId')
@@ -221,25 +216,25 @@ export class ElitesController {
     return this.elitesService.requestTutorLearner(user.sub, learnerId);
   }
 
-  @Post('tutor/respond/:requestId')
-  @ApiOperation({ summary: 'Respond to tutor request' })
-  async respondToTutorRequest(
-    @Param('requestId') requestId: string,
-    @Body() body: { accept: boolean },
+  @Post('tutor/accept/:learnerId')
+  @ApiOperation({ summary: 'Accept tutor-learner request' })
+  async acceptTutorLearner(
+    @CurrentUser() user: any,
+    @Param('learnerId') learnerId: string,
   ) {
-    return this.elitesService.respondToTutorRequest(requestId, body.accept);
-  }
-
-  @Get('tutor/learners')
-  @ApiOperation({ summary: 'Get available learners for tutor' })
-  async getAvailableLearners(@CurrentUser() user: any) {
-    return this.elitesService.getAvailableLearners(user.sub);
+    return this.elitesService.acceptTutorLearner(user.sub, learnerId);
   }
 
   @Get('tutor/dashboard')
   @ApiOperation({ summary: 'Get tutor dashboard' })
   async getTutorDashboard(@CurrentUser() user: any) {
     return this.elitesService.getTutorDashboard(user.sub);
+  }
+
+  @Get('learner/dashboard')
+  @ApiOperation({ summary: 'Get learner dashboard' })
+  async getLearnerDashboard(@CurrentUser() user: any) {
+    return this.elitesService.getLearnerDashboard(user.sub);
   }
 
   @Get('tutors')
@@ -250,5 +245,11 @@ export class ElitesController {
     @Param('courseId') courseId?: string,
   ) {
     return this.elitesService.getAvailableTutors(user.sub, techStack, courseId);
+  }
+
+  @Get('tutor/learners')
+  @ApiOperation({ summary: 'Get available learners for tutor' })
+  async getAvailableLearners(@CurrentUser() user: any) {
+    return this.elitesService.getAvailableLearners(user.sub);
   }
 }
