@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../../libs/database/prisma.service';
+import { NotificationService } from '../../libs/shared-utils/notification.service';
 
 export interface VerseTokenPayload {
   sub: string; // userId
@@ -15,10 +16,11 @@ export class AuthBridgeService {
   constructor(
     private jwtService: JwtService,
     private prisma: PrismaService,
+    private notificationService: NotificationService,
   ) {}
 
   /**
-   * Register a new user with biometric verification
+   * Register a new user with biometric verification and OTP
    */
   async register(
     email: string,
@@ -42,7 +44,11 @@ export class AuthBridgeService {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Create user with biometric data
+    // Generate OTP
+    const otp = await this.notificationService.sendOTP(email, username);
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Create user with biometric data and OTP
     const user = await this.prisma.user.create({
       data: {
         email,
@@ -52,6 +58,9 @@ export class AuthBridgeService {
         facialData,
         fingerprintData,
         isBiometricVerified: !!(facialData || fingerprintData),
+        otpCode: otp,
+        otpExpiresAt,
+        isEmailVerified: false,
       },
     });
 
@@ -63,6 +72,32 @@ export class AuthBridgeService {
         escrowBalance: 0,
       },
     });
+
+    return {
+      message: 'Registration initiated. Please check your email for verification code.',
+      userId: user.id,
+      requiresVerification: true,
+    };
+  }
+
+  /**
+   * Verify OTP and complete registration
+   */
+  async verifyOTP(userId: string, otpCode: string) {
+    const isValid = await this.notificationService.verifyOTP(userId, otpCode);
+
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid or expired OTP code');
+    }
+
+    // Get the verified user
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
 
     return this.generateVerseToken(user);
   }

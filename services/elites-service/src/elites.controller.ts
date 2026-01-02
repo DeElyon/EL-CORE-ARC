@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Body,
   Param,
   UseGuards,
@@ -92,5 +93,162 @@ export class ElitesController {
   @ApiOperation({ summary: 'Get student dashboard' })
   async getDashboard(@CurrentUser() user: any) {
     return this.elitesService.getStudentDashboard(user.sub);
+  }
+
+  // ============================================
+  // TUTOR ENDPOINTS
+  // ============================================
+
+  @Post('tutor/register')
+  @ApiOperation({ summary: 'Register as tutor' })
+  async registerAsTutor(
+    @CurrentUser() user: any,
+    @Body() body: {
+      bio: string;
+      experience: number;
+      hourlyRate: number;
+      techStacks: string[];
+      courses: string[];
+    },
+  ) {
+    return this.elitesService.registerAsTutor(
+      user.sub,
+      body.bio,
+      body.experience,
+      body.hourlyRate,
+      body.techStacks,
+      body.courses,
+    );
+  }
+
+  @Put('tutor/profile')
+  @ApiOperation({ summary: 'Update tutor profile' })
+  async updateTutorProfile(
+    @CurrentUser() user: any,
+    @Body() body: {
+      bio?: string;
+      experience?: number;
+      hourlyRate?: number;
+      techStacks?: string[];
+      courses?: string[];
+      isActive?: boolean;
+    },
+  ) {
+    return this.elitesService.updateTutorProfile(user.sub, body);
+  }
+
+  @Post('tutor/availability')
+  @ApiOperation({ summary: 'Set tutor availability' })
+  async setTutorAvailability(
+    @CurrentUser() user: any,
+    @Body() body: {
+      availability: Array<{
+        dayOfWeek: number;
+        startTime: string;
+        endTime: string;
+        isAvailable: boolean;
+      }>;
+    },
+  ) {
+    return this.elitesService.setTutorAvailability(user.sub, body.availability);
+  }
+
+  @Get('tutor/availability')
+  @ApiOperation({ summary: 'Get tutor availability' })
+  async getTutorAvailability(@CurrentUser() user: any) {
+    return this.elitesService.getTutorAvailability(user.sub);
+  }
+
+  @Post('classes')
+  @ApiOperation({ summary: 'Schedule a class' })
+  async scheduleClass(
+    @CurrentUser() user: any,
+    @Body() body: {
+      learnerId: string;
+      title: string;
+      description: string;
+      scheduledAt: string;
+      duration: number;
+      courseId?: string;
+      techStack?: string;
+    },
+  ) {
+    return this.elitesService.scheduleClass(
+      user.sub,
+      body.learnerId,
+      body.title,
+      body.description,
+      new Date(body.scheduledAt),
+      body.duration,
+      body.courseId,
+      body.techStack,
+    );
+  }
+
+  @Get('tutor/classes')
+  @ApiOperation({ summary: 'Get tutor classes' })
+  async getTutorClasses(
+    @CurrentUser() user: any,
+    @Param('status') status?: string,
+  ) {
+    return this.elitesService.getTutorClasses(user.sub, status);
+  }
+
+  @Get('learner/classes')
+  @ApiOperation({ summary: 'Get learner classes' })
+  async getLearnerClasses(
+    @CurrentUser() user: any,
+    @Param('status') status?: string,
+  ) {
+    return this.elitesService.getLearnerClasses(user.sub, status);
+  }
+
+  @Put('classes/:classId/status')
+  @ApiOperation({ summary: 'Update class status' })
+  async updateClassStatus(
+    @Param('classId') classId: string,
+    @Body() body: { status: string; notes?: string },
+  ) {
+    return this.elitesService.updateClassStatus(classId, body.status, body.notes);
+  }
+
+  @Post('tutor/request/:learnerId')
+  @ApiOperation({ summary: 'Request tutor-learner relationship' })
+  async requestTutorLearner(
+    @CurrentUser() user: any,
+    @Param('learnerId') learnerId: string,
+  ) {
+    return this.elitesService.requestTutorLearner(user.sub, learnerId);
+  }
+
+  @Post('tutor/respond/:requestId')
+  @ApiOperation({ summary: 'Respond to tutor request' })
+  async respondToTutorRequest(
+    @Param('requestId') requestId: string,
+    @Body() body: { accept: boolean },
+  ) {
+    return this.elitesService.respondToTutorRequest(requestId, body.accept);
+  }
+
+  @Get('tutor/learners')
+  @ApiOperation({ summary: 'Get available learners for tutor' })
+  async getAvailableLearners(@CurrentUser() user: any) {
+    return this.elitesService.getAvailableLearners(user.sub);
+  }
+
+  @Get('tutor/dashboard')
+  @ApiOperation({ summary: 'Get tutor dashboard' })
+  async getTutorDashboard(@CurrentUser() user: any) {
+    return this.elitesService.getTutorDashboard(user.sub);
+  }
+
+  @Get('tutors')
+  @ApiOperation({ summary: 'Get available tutors' })
+  async getAvailableTutors(
+    @CurrentUser() user: any,
+    @Param('techStack') techStack?: string,
+    @Param('courseId') courseId?: string,
+  ) {
+    return this.elitesService.getAvailableTutors(user.sub, techStack, courseId);
   }
 }

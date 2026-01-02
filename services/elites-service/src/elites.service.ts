@@ -314,6 +314,429 @@ export class ElitesService {
       courses: enrollments,
     };
   }
+
+  // ============================================
+  // TUTOR SYSTEM
+  // ============================================
+
+  /**
+   * Register as tutor
+   */
+  async registerAsTutor(
+    userId: string,
+    bio: string,
+    experience: number,
+    hourlyRate: number,
+    techStacks: string[],
+    courses: string[],
+  ) {
+    // Update user role
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { role: 'TUTOR' },
+    });
+
+    return await this.prisma.tutor.create({
+      data: {
+        userId,
+        bio,
+        experience,
+        hourlyRate,
+        techStacks,
+        courses,
+      },
+    });
+  }
+
+  /**
+   * Update tutor profile
+   */
+  async updateTutorProfile(
+    userId: string,
+    updates: {
+      bio?: string;
+      experience?: number;
+      hourlyRate?: number;
+      techStacks?: string[];
+      courses?: string[];
+      isActive?: boolean;
+    },
+  ) {
+    return await this.prisma.tutor.update({
+      where: { userId },
+      data: updates,
+    });
+  }
+
+  /**
+   * Set tutor availability
+   */
+  async setTutorAvailability(
+    userId: string,
+    availability: Array<{
+      dayOfWeek: number;
+      startTime: string;
+      endTime: string;
+      isAvailable: boolean;
+    }>,
+  ) {
+    const tutor = await this.prisma.tutor.findUnique({
+      where: { userId },
+    });
+
+    if (!tutor) {
+      throw new Error('Tutor not found');
+    }
+
+    // Delete existing availability
+    await this.prisma.tutorAvailability.deleteMany({
+      where: { tutorId: tutor.id },
+    });
+
+    // Create new availability
+    const availabilityData = availability.map((slot) => ({
+      tutorId: tutor.id,
+      ...slot,
+    }));
+
+    return await this.prisma.tutorAvailability.createMany({
+      data: availabilityData,
+    });
+  }
+
+  /**
+   * Get tutor availability
+   */
+  async getTutorAvailability(userId: string) {
+    const tutor = await this.prisma.tutor.findUnique({
+      where: { userId },
+    });
+
+    if (!tutor) {
+      throw new Error('Tutor not found');
+    }
+
+    return await this.prisma.tutorAvailability.findMany({
+      where: { tutorId: tutor.id },
+    });
+  }
+
+  /**
+   * Schedule a class
+   */
+  async scheduleClass(
+    tutorId: string,
+    learnerId: string,
+    title: string,
+    description: string,
+    scheduledAt: Date,
+    duration: number,
+    courseId?: string,
+    techStack?: string,
+  ) {
+    const tutor = await this.prisma.tutor.findUnique({
+      where: { userId: tutorId },
+    });
+
+    if (!tutor) {
+      throw new Error('Tutor not found');
+    }
+
+    // Check if learner exists
+    const learner = await this.prisma.user.findUnique({
+      where: { id: learnerId },
+    });
+
+    if (!learner) {
+      throw new Error('Learner not found');
+    }
+
+    // Check if tutor-learner relationship exists and is accepted
+    const relationship = await this.prisma.tutorLearner.findUnique({
+      where: {
+        tutorId_learnerId: {
+          tutorId: tutor.id,
+          learnerId,
+        },
+      },
+    });
+
+    if (!relationship || relationship.status !== 'ACCEPTED') {
+      throw new Error('Tutor-learner relationship not established');
+    }
+
+    return await this.prisma.class.create({
+      data: {
+        tutorId: tutor.id,
+        learnerId,
+        title,
+        description,
+        courseId,
+        techStack,
+        scheduledAt,
+        duration,
+      },
+    });
+  }
+
+  /**
+   * Get tutor's classes
+   */
+  async getTutorClasses(userId: string, status?: string) {
+    const tutor = await this.prisma.tutor.findUnique({
+      where: { userId },
+    });
+
+    if (!tutor) {
+      throw new Error('Tutor not found');
+    }
+
+    const where: any = { tutorId: tutor.id };
+    if (status) {
+      where.status = status;
+    }
+
+    return await this.prisma.class.findMany({
+      where,
+      include: {
+        learner: {
+          select: {
+            id: true,
+            username: true,
+            avatarUrl: true,
+          },
+        },
+      },
+      orderBy: { scheduledAt: 'asc' },
+    });
+  }
+
+  /**
+   * Get learner's classes
+   */
+  async getLearnerClasses(userId: string, status?: string) {
+    const where: any = { learnerId: userId };
+    if (status) {
+      where.status = status;
+    }
+
+    return await this.prisma.class.findMany({
+      where,
+      include: {
+        tutor: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { scheduledAt: 'asc' },
+    });
+  }
+
+  /**
+   * Update class status
+   */
+  async updateClassStatus(classId: string, status: string, notes?: string) {
+    return await this.prisma.class.update({
+      where: { id: classId },
+      data: {
+        status: status as any,
+        notes,
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  /**
+   * Request tutor-learner relationship
+   */
+  async requestTutorLearner(tutorId: string, learnerId: string) {
+    const tutor = await this.prisma.tutor.findUnique({
+      where: { userId: tutorId },
+    });
+
+    if (!tutor) {
+      throw new Error('Tutor not found');
+    }
+
+    // Check if relationship already exists
+    const existing = await this.prisma.tutorLearner.findUnique({
+      where: {
+        tutorId_learnerId: {
+          tutorId: tutor.id,
+          learnerId,
+        },
+      },
+    });
+
+    if (existing) {
+      return existing;
+    }
+
+    return await this.prisma.tutorLearner.create({
+      data: {
+        tutorId: tutor.id,
+        learnerId,
+      },
+    });
+  }
+
+  /**
+   * Accept/Reject tutor-learner request
+   */
+  async respondToTutorRequest(requestId: string, accept: boolean) {
+    const status = accept ? 'ACCEPTED' : 'REJECTED';
+
+    return await this.prisma.tutorLearner.update({
+      where: { id: requestId },
+      data: {
+        status: status as any,
+        acceptedAt: accept ? new Date() : undefined,
+      },
+    });
+  }
+
+  /**
+   * Get available learners for tutor
+   */
+  async getAvailableLearners(tutorId: string) {
+    const tutor = await this.prisma.tutor.findUnique({
+      where: { userId: tutorId },
+      include: { courses: true },
+    });
+
+    if (!tutor) {
+      throw new Error('Tutor not found');
+    }
+
+    // Find learners who are enrolled in tutor's courses or have matching tech stacks
+    const learners = await this.prisma.user.findMany({
+      where: {
+        role: 'LEARNER',
+        OR: [
+          {
+            enrollments: {
+              some: {
+                courseId: {
+                  in: tutor.courses,
+                },
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        username: true,
+        avatarUrl: true,
+        verseScore: true,
+        enrollments: {
+          include: {
+            course: true,
+          },
+        },
+      },
+    });
+
+    return learners;
+  }
+
+  /**
+   * Get tutor dashboard
+   */
+  async getTutorDashboard(userId: string) {
+    const tutor = await this.prisma.tutor.findUnique({
+      where: { userId },
+      include: {
+        classes: {
+          include: {
+            learner: {
+              select: {
+                id: true,
+                username: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+        tutorLearners: {
+          where: { status: 'ACCEPTED' },
+          include: {
+            learner: {
+              select: {
+                id: true,
+                username: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!tutor) {
+      throw new Error('Tutor not found');
+    }
+
+    const wallet = await this.walletEngine.getLedger().getBalance(userId);
+
+    const stats = {
+      totalClasses: tutor.classes.length,
+      upcomingClasses: tutor.classes.filter((c) => c.status === 'SCHEDULED').length,
+      completedClasses: tutor.classes.filter((c) => c.status === 'COMPLETED').length,
+      totalLearners: tutor.tutorLearners.length,
+      walletBalance: Number(wallet.wthBalance || 0),
+    };
+
+    return {
+      tutor,
+      stats,
+      classes: tutor.classes,
+      learners: tutor.tutorLearners.map((tl) => tl.learner),
+    };
+  }
+
+  /**
+   * Get available tutors for learner
+   */
+  async getAvailableTutors(learnerId: string, techStack?: string, courseId?: string) {
+    const where: any = {
+      isActive: true,
+    };
+
+    if (techStack) {
+      where.techStacks = {
+        has: techStack,
+      };
+    }
+
+    if (courseId) {
+      where.courses = {
+        has: courseId,
+      };
+    }
+
+    return await this.prisma.tutor.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            avatarUrl: true,
+            verseScore: true,
+          },
+        },
+        availability: true,
+      },
+    });
+  }
 }
 
 

@@ -17,6 +17,7 @@ enum UserRole {
   CLIENT      // MY SPACE
   COMPANY     // MY SPACE (Startup)
   LEARNER     // ELITES
+  TUTOR       // ELITES
 }
 
 model User {
@@ -38,6 +39,11 @@ model User {
   fingerprintData String?   // Base64 encoded fingerprint data
   isBiometricVerified Boolean @default(false)
   
+  // OTP verification
+  otpCode         String?
+  otpExpiresAt    DateTime?
+  isEmailVerified Boolean   @default(false)
+  
   // Financials
   wallet          Wallet?
   
@@ -58,6 +64,11 @@ model User {
   withdrawalRequests WithdrawalRequest[] // Withdrawal requests
   postShares      PostShare[]       // Shared posts
   createdChatRooms ChatRoom[]       @relation("CreatedChatRooms") // Created chat rooms
+  
+  // Tutor relations
+  tutor           Tutor?            // If user is a tutor
+  scheduledClasses Class[]          @relation("LearnerClasses") // Classes as learner
+  tutorLearners   TutorLearner[]    @relation("LearnerRequests") // Tutor requests as learner
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -557,6 +568,102 @@ model Certification {
   issuedAt      DateTime @default(now())
   
   @@unique([userId, courseId])
+}
+
+// ============================================
+// TUTOR SYSTEM
+// ============================================
+
+model Tutor {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Tutor profile
+  bio           String?
+  experience    Int      // Years of experience
+  hourlyRate    Decimal  @db.Decimal(18, 8)
+  rating        Decimal  @default(0) @db.Decimal(3, 2)
+  totalSessions Int      @default(0)
+  
+  // Tech stacks and courses
+  techStacks    String[] // ["JavaScript", "React", "Node.js"]
+  courses       String[] // Course IDs they can teach
+  
+  // Availability
+  availability  TutorAvailability[]
+  classes       Class[]  @relation("TutorClasses")
+  tutorLearners TutorLearner[]
+  
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model TutorAvailability {
+  id            String   @id @default(uuid())
+  tutorId       String
+  tutor         Tutor    @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  
+  dayOfWeek     Int      // 0-6 (Sunday-Saturday)
+  startTime     String   // "09:00"
+  endTime       String   // "17:00"
+  isAvailable   Boolean  @default(true)
+  
+  createdAt     DateTime @default(now())
+}
+
+model Class {
+  id            String   @id @default(uuid())
+  tutorId       String
+  tutor         Tutor    @relation(fields: [tutorId], references: [id], name: "TutorClasses")
+  learnerId     String
+  learner       User     @relation(fields: [learnerId], references: [id], name: "LearnerClasses")
+  
+  title         String
+  description   String?
+  courseId      String?  // If it's a course-related class
+  techStack     String?  // If it's a tech stack specific class
+  
+  scheduledAt   DateTime
+  duration      Int      // Minutes
+  status        ClassStatus @default(SCHEDULED)
+  
+  meetingLink   String?  // Zoom/Google Meet link
+  notes         String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+enum ClassStatus {
+  SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+model TutorLearner {
+  id            String   @id @default(uuid())
+  tutorId       String
+  tutor         Tutor    @relation(fields: [tutorId], references: [id])
+  learnerId     String
+  learner       User     @relation(fields: [learnerId], references: [id], name: "LearnerRequests")
+  
+  status        TutorLearnerStatus @default(PENDING)
+  requestedAt   DateTime @default(now())
+  acceptedAt    DateTime?
+  
+  @@unique([tutorId, learnerId])
+}
+
+enum TutorLearnerStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
 }
 
 // ============================================

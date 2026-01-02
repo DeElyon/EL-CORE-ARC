@@ -37,6 +37,12 @@ export class AuthController {
     );
   }
 
+  @Post('verify-otp')
+  @ApiOperation({ summary: 'Verify OTP and complete registration' })
+  async verifyOTP(@Body() body: { userId: string; otpCode: string }) {
+    return this.authBridge.verifyOTP(body.userId, body.otpCode);
+  }
+
   @Post('login')
   @ApiOperation({ summary: 'Login user' })
   async login(@Body() body: { email: string; password: string }) {

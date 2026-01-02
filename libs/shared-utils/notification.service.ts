@@ -244,4 +244,74 @@ export class NotificationService {
       console.error('Admin notification failed:', error);
     }
   }
+
+  /**
+   * Generate and send OTP for user verification
+   */
+  async sendOTP(email: string, username: string): Promise<string> {
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    try {
+      await this.transporter.sendMail({
+        from: process.env.EMAIL_USER || 'elcoderssoftwares12@gmail.com',
+        to: email,
+        subject: 'EL VERSE - Email Verification Code',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Welcome to EL VERSE!</h2>
+            <p>Hello ${username},</p>
+            <p>Your verification code is:</p>
+            <div style="background-color: #f8f9fa; padding: 20px; text-align: center; margin: 20px 0; border-radius: 5px;">
+              <h1 style="color: #007bff; font-size: 32px; margin: 0; letter-spacing: 5px;">${otp}</h1>
+            </div>
+            <p>This code will expire in 10 minutes. Please use it to complete your registration.</p>
+            <p>If you didn't request this code, please ignore this email.</p>
+            <hr>
+            <p style="color: #666; font-size: 12px;">
+              This is an automated message from EL VERSE. Please do not reply to this email.
+            </p>
+          </div>
+        `,
+      });
+
+      return otp;
+    } catch (error) {
+      console.error('OTP email failed:', error);
+      throw new Error('Failed to send OTP email');
+    }
+  }
+
+  /**
+   * Verify OTP code
+   */
+  async verifyOTP(userId: string, otpCode: string): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { otpCode: true, otpExpiresAt: true },
+    });
+
+    if (!user || !user.otpCode || !user.otpExpiresAt) {
+      return false;
+    }
+
+    const now = new Date();
+    const isExpired = now > user.otpExpiresAt;
+    const isValid = user.otpCode === otpCode;
+
+    if (isValid && !isExpired) {
+      // Clear OTP after successful verification
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          otpCode: null,
+          otpExpiresAt: null,
+          isEmailVerified: true,
+        },
+      });
+      return true;
+    }
+
+    return false;
+  }
 }
