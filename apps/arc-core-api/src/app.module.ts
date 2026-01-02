@@ -4,12 +4,16 @@ import { JwtModule } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
 
 // Database
-import { PrismaService } from '../libs/database/prisma.service';
+import { PrismaService } from '../../../libs/database/prisma.service';
 
 // Auth
-import { AuthBridgeService } from '../libs/auth-bridge/auth-bridge.service';
-import { JwtAuthGuard } from '../libs/auth-bridge/guards/jwt-auth.guard';
-import { RolesGuard } from '../libs/auth-bridge/guards/roles.guard';
+import { AuthBridgeService } from '../../../libs/auth-bridge/auth-bridge.service';
+import { JwtAuthGuard } from '../../../libs/auth-bridge/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../libs/auth-bridge/guards/roles.guard';
+
+// Shared Utils
+import { ChatService } from '../../../libs/shared-utils/chat.service';
+import { NotificationService } from '../../../libs/shared-utils/notification.service';
 
 // Wallet Engine
 import {
@@ -17,7 +21,8 @@ import {
   LedgerService,
   EscrowService,
   WithdrawalService,
-} from '../libs/wallet-engine';
+  FundingService,
+} from '../../../libs/wallet-engine';
 
 // AI Hub
 import {
@@ -28,19 +33,19 @@ import {
   LinaAI,
   UnoAI,
   LibrarianAI,
-} from '../libs/ai-hub';
+} from '../../../libs/ai-hub';
 
 // Services
-import { NexelService } from '../services/nexel-service/src/nexel.service';
-import { NexelController } from '../services/nexel-service/src/nexel.controller';
-import { CodersService } from '../services/coders-service/src/coders.service';
-import { CodersController } from '../services/coders-service/src/coders.controller';
-import { AccessService } from '../services/access-service/src/access.service';
-import { AccessController } from '../services/access-service/src/access.controller';
-import { MySpaceService } from '../services/myspace-service/src/myspace.service';
-import { MySpaceController } from '../services/myspace-service/src/myspace.controller';
-import { ElitesService } from '../services/elites-service/src/elites.service';
-import { ElitesController } from '../services/elites-service/src/elites.controller';
+import { NexelService } from '../../../services/nexel-service/src/nexel.service';
+import { NexelController } from '../../../services/nexel-service/src/nexel.controller';
+import { CodersService } from '../../../services/coders-service/src/coders.service';
+import { CodersController } from '../../../services/coders-service/src/coders.controller';
+import { AccessService } from '../../../services/access-service/src/access.service';
+import { AccessController } from '../../../services/access-service/src/access.controller';
+import { MySpaceService } from '../../../services/myspace-service/src/myspace.service';
+import { MySpaceController } from '../../../services/myspace-service/src/myspace.controller';
+import { ElitesService } from '../../../services/elites-service/src/elites.service';
+import { ElitesController } from '../../../services/elites-service/src/elites.controller';
 
 // Gateways
 import { ChatGateway } from './gateways/chat.gateway';
@@ -50,6 +55,8 @@ import { NotificationGateway } from './gateways/notification.gateway';
 
 // Auth Controller
 import { AuthController } from './controllers/auth.controller';
+import { ChatController } from './controllers/chat.controller';
+import { WalletController } from './controllers/wallet.controller';
 
 @Module({
   imports: [
@@ -69,6 +76,8 @@ import { AuthController } from './controllers/auth.controller';
     MySpaceController,
     ElitesController,
     AuthController,
+    ChatController,
+    WalletController,
   ],
   providers: [
     // Database
@@ -86,6 +95,7 @@ import { AuthController } from './controllers/auth.controller';
     LedgerService,
     EscrowService,
     WithdrawalService,
+    FundingService,
     WalletEngineService,
 
     // AI Hub
@@ -96,6 +106,10 @@ import { AuthController } from './controllers/auth.controller';
     UnoAI,
     LibrarianAI,
     AiHubService,
+
+    // Shared Utils
+    ChatService,
+    NotificationService,
 
     // Services
     NexelService,

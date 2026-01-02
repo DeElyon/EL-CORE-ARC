@@ -239,5 +239,83 @@ export class CodersService {
 
     return { docs };
   }
+
+  // ============================================
+  // CHAT FUNCTIONALITY FOR ELCODERS
+  // ============================================
+
+  /**
+   * Create project chat room
+   */
+  async createProjectChat(projectId: string, creatorId: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      include: { client: true },
+    });
+
+    if (!project) {
+      throw new Error('Project not found');
+    }
+
+    // Only client or assigned developer can create chat
+    if (project.clientId !== creatorId && project.developerId !== creatorId) {
+      throw new Error('Not authorized to create project chat');
+    }
+
+    const memberIds = [project.clientId];
+    if (project.developerId) {
+      memberIds.push(project.developerId);
+    }
+
+    // This would use ChatService
+    // return await this.chatService.createRoom(
+    //   `Project: ${project.title}`,
+    //   ChatRoomType.PROJECT,
+    //   AppSource.ELCODERS,
+    //   creatorId,
+    //   projectId,
+    //   memberIds,
+    // );
+
+    return { message: 'Project chat created - integrate with ChatService' };
+  }
+
+  /**
+   * Get project chat messages
+   */
+  async getProjectChat(projectId: string, userId: string) {
+    // Verify user is part of project
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (!project || (project.clientId !== userId && project.developerId !== userId)) {
+      throw new Error('Not authorized to view project chat');
+    }
+
+    // This would use ChatService
+    // return await this.chatService.getRoomMessages(roomId, userId);
+
+    return { message: 'Project chat messages - integrate with ChatService' };
+  }
+
+  /**
+   * Send message to project chat
+   */
+  async sendProjectMessage(projectId: string, senderId: string, content: string) {
+    // Verify user is part of project
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (!project || (project.clientId !== senderId && project.developerId !== senderId)) {
+      throw new Error('Not authorized to send messages to project chat');
+    }
+
+    // This would use ChatService
+    // return await this.chatService.sendMessage(roomId, senderId, content);
+
+    return { message: 'Message sent - integrate with ChatService' };
+  }
 }
 

@@ -33,6 +33,11 @@ model User {
   devStreak       Int       @default(0) // Daily sign-in streak
   lastActiveAt    DateTime?
   
+  // Biometric verification
+  facialData      String?   // Base64 encoded facial recognition data
+  fingerprintData String?   // Base64 encoded fingerprint data
+  isBiometricVerified Boolean @default(false)
+  
   // Financials
   wallet          Wallet?
   
@@ -47,6 +52,12 @@ model User {
   notifications   Notification[]    // Global
   codeSessions    CodeSession[]     // ELCODERS
   liveStreams     LiveStream[]      // NEXEL
+  chatRooms       ChatRoomMember[]  // Chat rooms
+  sentMessages    ChatMessage[]     // Sent chat messages
+  fundingRequests FundingRequest[]  // Funding requests
+  withdrawalRequests WithdrawalRequest[] // Withdrawal requests
+  postShares      PostShare[]       // Shared posts
+  createdChatRooms ChatRoom[]       @relation("CreatedChatRooms") // Created chat rooms
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -97,6 +108,55 @@ model Transaction {
 }
 
 // ============================================
+// FUNDING & WITHDRAWAL SYSTEM
+// ============================================
+
+enum FundingMethod {
+  BANK_TRANSFER
+  CRYPTO_USDT_TRC20
+  CRYPTO_USDT_BEP20
+  CARD_PAYMENT
+}
+
+model FundingRequest {
+  id              String        @id @default(uuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  amount          Decimal       @db.Decimal(18, 8)
+  method          FundingMethod
+  appSource       AppSource
+  receiptUrl      String?       // Uploaded receipt image
+  accountDetails  Json?         // Bank/Crypto details
+  isFingerprintVerified Boolean @default(false)
+  status          String        @default("PENDING") // PENDING, VERIFIED, APPROVED, REJECTED
+  adminNotes      String?
+  processedBy     String?       // Admin user ID
+  processedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model WithdrawalRequest {
+  id              String        @id @default(uuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  amount          Decimal       @db.Decimal(18, 8)
+  fee             Decimal       @db.Decimal(18, 8) // 2.5% fee
+  totalAmount     Decimal       @db.Decimal(18, 8) // amount + fee
+  method          String        // BANK, CRYPTO, PAYPAL
+  accountDetails  Json          // Account details
+  appSource       AppSource
+  isFingerprintVerified Boolean @default(false)
+  isPasswordVerified   Boolean  @default(false)
+  status          String        @default("PENDING") // PENDING, APPROVED, PROCESSING, COMPLETED, REJECTED
+  adminNotified   Boolean       @default(false)
+  processedBy     String?       // Admin user ID
+  processedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+// ============================================
 // NEXEL (Social Media & Marketplace)
 // ============================================
 
@@ -105,6 +165,10 @@ enum PostType {
   PULSE
   MARKETPLACE_ITEM
   VENTURE_PITCH
+  STORY         // Instagram/Tiktok style stories
+  REEL          // Tiktok style short videos
+  LIVE_UPDATE   // Live streaming updates
+  GROUP_MESSAGE // Whatsapp style group messages
 }
 
 model Post {
@@ -112,7 +176,9 @@ model Post {
   authorId      String
   author        User      @relation(fields: [authorId], references: [id])
   content       String
-  mediaUrl      String?   // Photos/Pulse Videos
+  mediaUrl      String?   // Photos/Pulse Videos/Reels
+  mediaType     String?   // image, video, audio
+  thumbnailUrl  String?
   type          PostType  @default(CONTENT)
   likesCount    Int       @default(0)
   commentsCount Int       @default(0)
@@ -120,13 +186,25 @@ model Post {
   viewsCount    Int       @default(0)
   isVerified     Boolean   @default(false)
   hashtags      String[]  @default([])
+  mentions      String[]  @default([]) // User IDs mentioned
   
   // Marketplace specific
   price         Decimal?  @db.Decimal(18, 8)
   currency      String?   @default("WTH")
+  isSold        Boolean   @default(false)
+  buyerId       String?   // For marketplace purchases
+  
+  // Stories/Reels specific
+  expiresAt     DateTime? // For stories
+  duration      Int?      // Video duration in seconds
+  
+  // Live streaming
+  isLive        Boolean   @default(false)
+  liveEndedAt   DateTime?
   
   comments      Comment[]
   likes         PostLike[]
+  shares        PostShare[]
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -148,6 +226,17 @@ model PostLike {
   postId    String
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId    String
+  createdAt DateTime @default(now())
+  
+  @@unique([postId, userId])
+}
+
+model PostShare {
+  id        String   @id @default(uuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   
   @@unique([postId, userId])
@@ -188,6 +277,60 @@ model Message {
   createdAt     DateTime @default(now())
   
   @@index([senderId, receiverId])
+}
+
+// ============================================
+// CHAT SYSTEM (ELCODERS, EL ACCESS, ELITE, MY SPACE)
+// ============================================
+
+enum ChatRoomType {
+  DIRECT     // 1-on-1 chat
+  GROUP      // Group chat
+  PROJECT    // Project-specific chat
+  JOB        // Job-specific chat
+  COURSE     // Course-specific chat
+}
+
+model ChatRoom {
+  id            String           @id @default(uuid())
+  name          String?
+  type          ChatRoomType     @default(DIRECT)
+  appSource     AppSource        // Which EL VERSE arm
+  relatedId     String?          // Project ID, Job ID, Course ID, etc.
+  createdById   String
+  createdBy     User             @relation("CreatedChatRooms", fields: [createdById], references: [id])
+  members       ChatRoomMember[]
+  messages      ChatMessage[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+}
+
+model ChatRoomMember {
+  id            String      @id @default(uuid())
+  roomId        String
+  room          ChatRoom    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  role          String      @default("MEMBER") // ADMIN, MODERATOR, MEMBER
+  joinedAt      DateTime    @default(now())
+  
+  @@unique([roomId, userId])
+}
+
+model ChatMessage {
+  id            String      @id @default(uuid())
+  roomId        String
+  room          ChatRoom    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  senderId      String
+  sender        User        @relation(fields: [senderId], references: [id])
+  content       String
+  messageType   String      @default("TEXT") // TEXT, IMAGE, FILE, SYSTEM
+  fileUrl       String?
+  isRead        Boolean     @default(false)
+  readBy        String[]    @default([]) // User IDs who read the message
+  createdAt     DateTime    @default(now())
+  
+  @@index([roomId, createdAt])
 }
 
 // ============================================
@@ -427,6 +570,15 @@ enum NotificationType {
   PROJECT_UPDATE
   COURSE_COMPLETE
   SYSTEM
+  CHAT_MESSAGE
+  JOB_POSTED
+  PROJECT_ASSIGNED
+  CONTRACT_ACCEPTED
+  CLASS_STARTING
+  FUNDING_APPROVED
+  WITHDRAWAL_PROCESSED
+  MARKETPLACE_PURCHASE
+  MARKETPLACE_SALE
 }
 
 model Notification {

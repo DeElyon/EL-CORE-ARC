@@ -6,9 +6,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { AuthBridgeService } from '../../libs/auth-bridge/auth-bridge.service';
-import { JwtAuthGuard } from '../../libs/auth-bridge/guards/jwt-auth.guard';
-import { CurrentUser } from '../../libs/auth-bridge/decorators/current-user.decorator';
+import { AuthBridgeService } from '../../../libs/auth-bridge/auth-bridge.service';
+import { JwtAuthGuard } from '../../../libs/auth-bridge/guards/jwt-auth.guard';
+import { CurrentUser } from '../../../libs/auth-bridge/decorators/current-user.decorator';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -23,6 +23,8 @@ export class AuthController {
       username: string;
       password: string;
       role?: string;
+      facialData?: string;
+      fingerprintData?: string;
     },
   ) {
     return this.authBridge.register(
@@ -30,6 +32,8 @@ export class AuthController {
       body.username,
       body.password,
       body.role,
+      body.facialData,
+      body.fingerprintData,
     );
   }
 
@@ -49,6 +53,28 @@ export class AuthController {
       include: { wallet: true },
     });
     return userData;
+  }
+
+  @Post('verify-biometric')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Verify biometric data' })
+  async verifyBiometric(
+    @CurrentUser() user: any,
+    @Body() body: { facialData?: string; fingerprintData?: string },
+  ) {
+    return this.authBridge.verifyBiometric(user.sub, body.facialData, body.fingerprintData);
+  }
+
+  @Post('update-biometric')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update biometric data' })
+  async updateBiometric(
+    @CurrentUser() user: any,
+    @Body() body: { facialData?: string; fingerprintData?: string },
+  ) {
+    return this.authBridge.updateBiometric(user.sub, body.facialData, body.fingerprintData);
   }
 
   @Post('dev-streak')

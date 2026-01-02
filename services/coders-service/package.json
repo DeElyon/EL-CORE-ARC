@@ -1,0 +1,11 @@
+{
+  "name": "@el-verse/coders-service",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@el-verse/database": "workspace:*",
+    "@el-verse/ai-hub": "workspace:*",
+    "@el-verse/wallet-engine": "workspace:*"
+  }
+}

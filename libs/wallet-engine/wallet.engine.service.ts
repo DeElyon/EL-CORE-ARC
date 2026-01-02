@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { LedgerService } from './ledger.service';
 import { EscrowService } from './escrow.service';
 import { WithdrawalService } from './withdrawal.service';
+import { FundingService } from './funding.service';
 
 /**
  * Main Wallet Engine Service
@@ -13,6 +14,7 @@ export class WalletEngineService {
     private ledger: LedgerService,
     private escrow: EscrowService,
     private withdrawal: WithdrawalService,
+    private funding: FundingService,
   ) {}
 
   getLedger() {
@@ -25,5 +27,9 @@ export class WalletEngineService {
 
   getWithdrawal() {
     return this.withdrawal;
+  }
+
+  getFunding() {
+    return this.funding;
   }
 }

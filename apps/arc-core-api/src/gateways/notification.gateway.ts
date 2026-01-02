@@ -9,7 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../libs/database/prisma.service';
+import { PrismaService } from '../../../libs/database/prisma.service';
 
 @Injectable()
 @WebSocketGateway({

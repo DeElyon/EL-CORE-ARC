@@ -1,0 +1,10 @@
+{
+  "name": "@el-verse/shared-utils",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@el-verse/database": "workspace:*",
+    "nodemailer": "^7.0.12"
+  }
+}

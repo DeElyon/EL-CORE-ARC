@@ -9,7 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Injectable } from '@nestjs/common';
-import { CodersService } from '../../services/coders-service/src/coders.service';
+import { CodersService } from '../../../services/coders-service/src/coders.service';
 
 @Injectable()
 @WebSocketGateway({

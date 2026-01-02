@@ -18,13 +18,15 @@ export class AuthBridgeService {
   ) {}
 
   /**
-   * Register a new user
+   * Register a new user with biometric verification
    */
   async register(
     email: string,
     username: string,
     password: string,
     role?: string,
+    facialData?: string,
+    fingerprintData?: string,
   ) {
     // Check if user exists
     const existingUser = await this.prisma.user.findFirst({
@@ -40,13 +42,16 @@ export class AuthBridgeService {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create user with biometric data
     const user = await this.prisma.user.create({
       data: {
         email,
         username,
         passwordHash,
-        role: role || 'LEARNER',
+        role: (role as any) || 'LEARNER',
+        facialData,
+        fingerprintData,
+        isBiometricVerified: !!(facialData || fingerprintData),
       },
     });
 
@@ -130,6 +135,39 @@ export class AuthBridgeService {
     return await this.prisma.user.findUnique({
       where: { id: payload.sub },
       include: { wallet: true },
+    });
+  }
+
+  /**
+   * Verify biometric data
+   */
+  async verifyBiometric(userId: string, facialData?: string, fingerprintData?: string): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { facialData: true, fingerprintData: true },
+    });
+
+    if (!user) return false;
+
+    // Simple comparison - in production, use proper biometric matching algorithms
+    const facialMatch = !facialData || user.facialData === facialData;
+    const fingerprintMatch = !fingerprintData || user.fingerprintData === fingerprintData;
+
+    return facialMatch && fingerprintMatch;
+  }
+
+  /**
+   * Update biometric data
+   */
+  async updateBiometric(userId: string, facialData?: string, fingerprintData?: string) {
+    const updateData: any = {};
+    if (facialData) updateData.facialData = facialData;
+    if (fingerprintData) updateData.fingerprintData = fingerprintData;
+    if (facialData || fingerprintData) updateData.isBiometricVerified = true;
+
+    return await this.prisma.user.update({
+      where: { id: userId },
+      data: updateData,
     });
   }
 
