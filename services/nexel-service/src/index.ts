@@ -1,3 +1,2 @@
-export function getNexelStatus() {
-  return { status: 'ok', name: 'nexel-service' };
-}
+export * from './nexel.service';
+export * from './nexel.controller';

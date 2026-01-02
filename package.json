@@ -11,9 +11,33 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
-    "start:arc-core-api": "pnpm --filter ./apps/arc-core-api... run start"
+    "start:api": "pnpm --filter ./apps/arc-core-api start",
+    "db:generate": "pnpm --filter ./libs/database exec prisma generate",
+    "db:migrate": "pnpm --filter ./libs/database exec prisma migrate dev",
+    "db:push": "pnpm --filter ./libs/database exec prisma db push",
+    "db:studio": "pnpm --filter ./libs/database exec prisma studio"
   },
   "devDependencies": {
-    "turbo": "^1.10.0"
+    "turbo": "^1.10.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/platform-express": "^10.0.0",
+    "@nestjs/platform-socket.io": "^10.0.0",
+    "@nestjs/websockets": "^10.0.0",
+    "@nestjs/swagger": "^7.0.0",
+    "@nestjs/config": "^3.0.0",
+    "@nestjs/jwt": "^10.0.0",
+    "@prisma/client": "^5.0.0",
+    "prisma": "^5.0.0",
+    "bcrypt": "^5.1.0",
+    "@types/bcrypt": "^5.0.0",
+    "socket.io": "^4.5.0",
+    "openai": "^4.0.0",
+    "@google/generative-ai": "^0.1.0",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.0"
   }
 }

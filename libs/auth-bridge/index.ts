@@ -1,4 +1,5 @@
-export const authBridge = {
-  name: 'auth-bridge',
-  description: 'Verse-ID & SSO glue'
-};
+export * from './auth-bridge.service';
+export * from './guards/jwt-auth.guard';
+export * from './guards/roles.guard';
+export * from './decorators/roles.decorator';
+export * from './decorators/current-user.decorator';

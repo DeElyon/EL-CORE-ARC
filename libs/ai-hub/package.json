@@ -2,8 +2,9 @@
   "name": "@el-verse/ai-hub",
   "version": "0.1.0",
   "private": true,
-  "main": "./ai-core.service.ts",
   "dependencies": {
-    "openai": "^4.5.0"
+    "@nestjs/common": "^10.0.0",
+    "openai": "^4.0.0",
+    "@google/generative-ai": "^0.1.0"
   }
 }

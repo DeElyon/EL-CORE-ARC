@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: elverse-postgres
+    environment:
+      POSTGRES_USER: elverse
+      POSTGRES_PASSWORD: elverse123
+      POSTGRES_DB: elverse
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U elverse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: elverse-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: elverse-api
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://elverse:elverse123@postgres:5432/elverse?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-el-verse-secret-key-change-in-production}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      WTH_EXCHANGE_RATE: ${WTH_EXCHANGE_RATE:-1000}
+      PORT: 3000
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./apps/arc-core-api:/app/apps/arc-core-api
+      - ./libs:/app/libs
+      - ./services:/app/services
+
+volumes:
+  postgres_data:
+

@@ -1,3 +1,2 @@
-export function getElitesStatus() {
-  return { status: 'ok', name: 'elites-service' };
-}
+export * from './elites.service';
+export * from './elites.controller';

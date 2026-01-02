@@ -2,10 +2,6 @@
   "name": "@el-verse/database",
   "version": "0.1.0",
   "private": true,
-  "main": "./prisma.service.ts",
-  "scripts": {
-    "prisma:generate": "prisma generate"
-  },
   "dependencies": {
     "@prisma/client": "^5.0.0"
   },

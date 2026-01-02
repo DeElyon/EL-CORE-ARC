@@ -1,4 +1,1 @@
-export const librarian = {
-  name: 'librarian',
-  description: 'Educational & Curriculum AI'
-};
+export * from './librarian.service';

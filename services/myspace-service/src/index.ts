@@ -1,3 +1,2 @@
-export function getMyspaceStatus() {
-  return { status: 'ok', name: 'myspace-service' };
-}
+export * from './myspace.service';
+export * from './myspace.controller';

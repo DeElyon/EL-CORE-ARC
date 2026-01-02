@@ -1,3 +1,2 @@
-export function getAccessStatus() {
-  return { status: 'ok', name: 'access-service' };
-}
+export * from './access.service';
+export * from './access.controller';
