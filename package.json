@@ -6,6 +6,7 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
+    "test": "turbo run test",
     "start:api": "pnpm --filter ./apps/arc-core-api start",
     "db:generate": "pnpm --filter ./libs/database exec prisma generate",
     "db:migrate": "pnpm --filter ./libs/database exec prisma migrate dev",
@@ -13,6 +14,10 @@
     "db:studio": "pnpm --filter ./libs/database exec prisma studio"
   },
   "devDependencies": {
+    "@jest/globals": "^30.2.0",
+    "@types/jest": "^30.0.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
     "turbo": "^1.10.0",
     "typescript": "^5.0.0"
   },

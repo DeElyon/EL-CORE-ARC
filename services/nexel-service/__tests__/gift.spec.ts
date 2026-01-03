@@ -1,4 +1,4 @@
-import { NexelService } from '../nexel.service';
+import { NexelService } from '../src/nexel.service';
 
 const mockPrisma: any = {
   user: { findUnique: jest.fn() },
@@ -11,7 +11,8 @@ describe('NexelService.sendGift', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    service = new NexelService(mockPrisma as any);
+    const mockNelly: any = {};
+    service = new NexelService(mockPrisma as any, mockNelly as any);
     mockPrisma.user.findUnique.mockImplementation(({ where: { id } }: any) => {
       if (id === 'sender') return Promise.resolve({ verseId: 'NEX00000001', fullName: 'Sender' });
       return Promise.resolve({ verseId: 'NEX00000002', fullName: 'Receiver' });
