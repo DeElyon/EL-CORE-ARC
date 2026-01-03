@@ -90,6 +90,18 @@ docker-compose logs -f api
 ## 🔑 Key Features
 
 ### 1. Unified Authentication (Verse-ID)
+
+EL VERSE uses a globally-unique **VERSE ID** assigned on sign-up. The format is a 3-letter arm prefix followed by 8 digits (e.g., `NEX00012345`).
+
+- ELCODERS: `ELC` + 8 digits
+- NEXEL: `NEX` + 8 digits
+- EL ACCESS: `ELA` + 8 digits
+- MY SPACE: `MYS` + 8 digits
+- ELITES: `ELI` + 8 digits
+
+VERSE IDs are stored on the user profile (`User.verseId`) and a snapshot of `verseId` and `fullName` are stored on transfer/gift/transaction records to make internal transfers and gifting display the recipient/sender name and id consistently.
+
+
 - Single Sign-On across all 5 platforms
 - JWT-based authentication
 - Role-based access control (INTERN, DEVELOPER, CLIENT, COMPANY, LEARNER)
@@ -117,7 +129,19 @@ docker-compose logs -f api
 ## 📡 API Endpoints
 
 ### Authentication
-- `POST /api/auth/register` - Register new user
+- `POST /api/auth/register` - Register new user (now accepts `fullName` and optional `app` to set VERSE ID prefix). Example body:
+
+```json
+{
+  "email": "jane@example.com",
+  "username": "jane",
+  "password": "secure",
+  "fullName": "Jane Doe",
+  "app": "NEXEL" // Optional: ELCODERS, NEXEL, EL_ACCESS, MY_SPACE, ELITES
+}
+```
+
+The response includes `userId`, `verseId`, and `requiresVerification`.
 - `POST /api/auth/login` - Login
 - `GET /api/auth/me` - Get current user
 - `POST /api/auth/dev-streak` - Update daily streak
@@ -169,6 +193,10 @@ pnpm dev
 
 # Run specific service
 pnpm --filter @el-verse/arc-core-api dev
+
+⚠️ After pulling these changes, run Prisma migrations to add `verseId` and new fields:
+
+pnpm --filter libs/database prisma migrate dev --name add-verseId --preview-feature
 ```
 
 ### Database Management

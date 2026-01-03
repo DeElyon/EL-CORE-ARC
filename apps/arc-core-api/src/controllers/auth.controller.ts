@@ -4,6 +4,7 @@ import {
   Body,
   Get,
   UseGuards,
+  Param,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthBridgeService } from '@el-verse/auth-bridge';
@@ -23,6 +24,8 @@ export class AuthController {
       username: string;
       password: string;
       role?: string;
+      fullName?: string;
+      app?: string; // ELCODERS, NEXEL, EL_ACCESS, MY_SPACE, ELITES
       facialData?: string;
       fingerprintData?: string;
     },
@@ -32,9 +35,17 @@ export class AuthController {
       body.username,
       body.password,
       body.role,
+      body.fullName,
+      body.app,
       body.facialData,
       body.fingerprintData,
     );
+  }
+
+  @Get('lookup/:verseId')
+  @ApiOperation({ summary: 'Lookup user by Verse ID' })
+  async lookupByVerseId(@Param('verseId') verseId: string) {
+    return this.authBridge.getUserByVerseId(verseId);
   }
 
   @Post('verify-otp')

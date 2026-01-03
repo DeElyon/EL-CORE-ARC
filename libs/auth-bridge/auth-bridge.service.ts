@@ -27,6 +27,8 @@ export class AuthBridgeService {
     username: string,
     password: string,
     role?: string,
+    fullName?: string,
+    app?: string,
     facialData?: string,
     fingerprintData?: string,
   ) {
@@ -48,6 +50,11 @@ export class AuthBridgeService {
     const otp = await this.notificationService.sendOTP(email, username);
     const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
+    // Generate Verse ID
+    const { VerseIdGenerator } = await import('../../libs/shared-utils/verse-id.util');
+    const generator = new VerseIdGenerator(this.prisma);
+    const verseId = await generator.generate(app || 'NEXEL');
+
     // Create user with biometric data and OTP
     const user = await this.prisma.user.create({
       data: {
@@ -55,6 +62,10 @@ export class AuthBridgeService {
         username,
         passwordHash,
         role: (role as any) || 'LEARNER',
+        fullName,
+        displayName: fullName || username,
+        verseId,
+        verseIdGeneratedAt: new Date(),
         facialData,
         fingerprintData,
         isBiometricVerified: !!(facialData || fingerprintData),
@@ -76,6 +87,7 @@ export class AuthBridgeService {
     return {
       message: 'Registration initiated. Please check your email for verification code.',
       userId: user.id,
+      verseId: verseId,
       requiresVerification: true,
     };
   }
@@ -170,6 +182,13 @@ export class AuthBridgeService {
     return await this.prisma.user.findUnique({
       where: { id: payload.sub },
       include: { wallet: true },
+    });
+  }
+
+  async getUserByVerseId(verseId: string) {
+    return await this.prisma.user.findUnique({
+      where: { verseId },
+      select: { id: true, email: true, username: true, fullName: true, verseId: true, avatarUrl: true },
     });
   }
 

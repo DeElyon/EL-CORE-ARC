@@ -69,7 +69,12 @@ model User {
   tutor           Tutor?            // If user is a tutor
   scheduledClasses Class[]          @relation("LearnerClasses") // Classes as learner
   tutorLearners   TutorLearner[]    @relation("LearnerRequests") // Tutor requests as learner
-  
+
+  // Verse ID & Identity
+  fullName        String?           // Full legal or display name
+  verseId         String?           @unique
+  verseIdGeneratedAt DateTime?
+
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }
@@ -114,6 +119,8 @@ model Transaction {
   appSource     AppSource
   description   String?
   relatedId     String?         // Project ID, Post ID, etc.
+  counterpartyVerseId String?   // Verse ID of other party for quick lookup
+  counterpartyName String?      // Snapshot of other party's full name
   status        String          @default("PENDING") // PENDING, SUCCESS, FAILED
   createdAt     DateTime        @default(now())
 }
@@ -271,7 +278,11 @@ model Gift {
   id            String   @id @default(uuid())
   streamId      String?
   senderId      String
+  senderVerseId String?  // Snapshot of sender's Verse ID
+  senderName    String?  // Snapshot of sender's full name
   receiverId    String
+  receiverVerseId String? // Snapshot of receiver's Verse ID
+  receiverName  String?  // Snapshot of receiver's full name
   giftType      String   // "pulse_sparkle", "gold_star", etc.
   amount        Decimal  @db.Decimal(18, 8)
   createdAt     DateTime @default(now())
