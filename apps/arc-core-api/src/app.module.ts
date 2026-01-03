@@ -46,12 +46,19 @@ import { MySpaceService } from '@el-verse/myspace-service';
 import { MySpaceController } from '@el-verse/myspace-service';
 import { ElitesService } from '@el-verse/elites-service';
 import { ElitesController } from '@el-verse/elites-service';
+import { ProcessingService, MediaService } from '@el-verse/shared-utils';
+import { MediaController } from './controllers/media.controller';
+import { CallController } from './controllers/call.controller';
+import { CallService } from './services/call.service';
 
 // Gateways
 import { ChatGateway } from './gateways/chat.gateway';
 import { StreamGateway } from './gateways/stream.gateway';
 import { IdeGateway } from './gateways/ide.gateway';
 import { NotificationGateway } from './gateways/notification.gateway';
+import { CallGateway } from './gateways/call.gateway';
+import { RecordingsController } from './controllers/recordings.controller';
+import { RecordingService } from '@el-verse/shared-utils';
 
 // Auth Controller
 import { AuthController } from './controllers/auth.controller';
@@ -78,6 +85,9 @@ import { WalletController } from './controllers/wallet.controller';
     AuthController,
     ChatController,
     WalletController,
+    MediaController,
+    CallController,
+    RecordingsController,
   ],
   providers: [
     // Database
@@ -123,6 +133,12 @@ import { WalletController } from './controllers/wallet.controller';
     StreamGateway,
     IdeGateway,
     NotificationGateway,
+    CallGateway,
+    // Media processing
+    ProcessingService,
+    RecordingService,
+    // Call services
+    CallService,
   ],
 })
 export class AppModule {}

@@ -63,12 +63,19 @@ model User {
   fundingRequests FundingRequest[]  // Funding requests
   withdrawalRequests WithdrawalRequest[] // Withdrawal requests
   postShares      PostShare[]       // Shared posts
+  savedPosts      SavedPost[]       // Bookmarks / saved posts
   createdChatRooms ChatRoom[]       @relation("CreatedChatRooms") // Created chat rooms
   
   // Tutor relations
   tutor           Tutor?            // If user is a tutor
   scheduledClasses Class[]          @relation("LearnerClasses") // Classes as learner
   tutorLearners   TutorLearner[]    @relation("LearnerRequests") // Tutor requests as learner
+
+  // Media & Live relations
+  uploadedMedia   Media[]           @relation("UploadedMedia")
+  instructorVideoClasses VideoClass[] @relation("InstructorClasses")
+  startedCallSessions CallSession[]  @relation("StartedCalls")
+  callParticipantRecords CallParticipant[] @relation("UserCallParticipants")
 
   // Verse ID & Identity
   fullName        String?           // Full legal or display name
@@ -223,6 +230,7 @@ model Post {
   comments      Comment[]
   likes         PostLike[]
   shares        PostShare[]
+  savedBy       SavedPost[]
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -257,6 +265,17 @@ model PostShare {
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   
+  @@unique([postId, userId])
+}
+
+model SavedPost {
+  id        String   @id @default(uuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
   @@unique([postId, userId])
 }
 
@@ -675,6 +694,98 @@ enum TutorLearnerStatus {
   ACCEPTED
   REJECTED
   BLOCKED
+}
+
+// ============================================
+// MEDIA, VIDEO CLASSES & CALL SESSIONS
+// ============================================
+
+enum MediaType {
+  VIDEO
+  AUDIO
+  IMAGE
+  FILE
+}
+
+enum MediaStatus {
+  UPLOADED
+  PROCESSING
+  READY
+  FAILED
+}
+
+model Media {
+  id          String     @id @default(uuid())
+  uploaderId  String
+  uploader    User       @relation("UploadedMedia", fields: [uploaderId], references: [id])
+  appSource   AppSource  // Which EL VERSE arm uploaded this
+  type        MediaType
+  status      MediaStatus @default(UPLOADED)
+  url         String?    // Final CDN URL
+  storageKey  String?    // Internal storage key (S3 path)
+  filename    String
+  mimeType    String
+  size        Int
+  duration    Int?       // seconds for video/audio
+  thumbnailUrl String?
+  metadata    Json?
+  videoClasses VideoClass[] @relation("MediaVideoClasses")
+  recordings  Recording[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model VideoClass {
+  id            String   @id @default(uuid())
+  courseId      String?  // optional link to course
+  lessonId      String?  // optional link to lesson
+  title         String
+  description   String?
+  instructorId  String
+  instructor    User     @relation("InstructorClasses", fields: [instructorId], references: [id])
+  mediaId       String?  // recorded/uploaded video
+  media         Media?   @relation("MediaVideoClasses", fields: [mediaId], references: [id])
+  scheduledAt   DateTime?
+  duration      Int?     // minutes
+  isLive        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model CallSession {
+  id          String     @id @default(uuid())
+  appSource   AppSource
+  roomName    String     @unique
+  startedById String
+  startedBy   User       @relation("StartedCalls", fields: [startedById], references: [id])
+  type        String     // VIDEO or AUDIO
+  status      String     @default("ACTIVE") // ACTIVE, ENDED
+  startedAt   DateTime   @default(now())
+  endedAt     DateTime?
+  participants CallParticipant[]
+  recordings   Recording[]
+}
+
+model CallParticipant {
+  id           String   @id @default(uuid())
+  callId       String
+  call         CallSession @relation(fields: [callId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User     @relation("UserCallParticipants", fields: [userId], references: [id])
+  joinedAt     DateTime @default(now())
+  leftAt       DateTime?
+  isHost       Boolean  @default(false)
+}
+
+model Recording {
+  id         String   @id @default(uuid())
+  callId     String
+  call       CallSession @relation(fields: [callId], references: [id], onDelete: Cascade)
+  mediaId    String
+  media      Media    @relation(fields: [mediaId], references: [id])
+  startedAt  DateTime @default(now())
+  endedAt    DateTime?
+  createdAt  DateTime @default(now())
 }
 
 // ============================================

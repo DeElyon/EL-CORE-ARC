@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@el-verse/database';
-import { LibrarianAI } from '@el-verse/ai-hub';
-import { WalletEngineService } from '@el-verse/wallet-engine';
+import { LibrarianAI } from '../../../libs/ai-hub/index';
+import { WalletEngineService } from '../../../libs/wallet-engine/index';
+import { MediaService } from '../../../libs/shared-utils/media.service';
 import { AppSource, UserRole, ClassStatus, TutorLearnerStatus } from '@prisma/client';
 
 @Injectable()
@@ -804,4 +805,77 @@ export class ElitesService {
     };
   }
 
+  /**
+   * Video classes
+   */
+  async createVideoClass(
+    instructorId: string,
+    title: string,
+    description?: string,
+    scheduledAt?: Date,
+    duration?: number,
+    courseId?: string,
+    lessonId?: string,
+  ) {
+    return this.prisma.videoClass.create({
+      data: {
+        instructorId,
+        title,
+        description,
+        scheduledAt,
+        duration,
+        courseId,
+        lessonId,
+      },
+    });
+  }
+
+  async listVideoClasses(instructorId?: string) {
+    const where: any = {};
+    if (instructorId) where.instructorId = instructorId;
+    return this.prisma.videoClass.findMany({ where, include: { media: true } });
+  }
+
+  async getVideoClass(classId: string) {
+    return this.prisma.videoClass.findUnique({ where: { id: classId }, include: { media: true } });
+  }
+
+  async getVideoClassDownload(classId: string) {
+    const vc = await this.getVideoClass(classId);
+    if (!vc || !vc.mediaId) throw new Error('No media attached');
+    const mediaSvc = new MediaService(this.prisma as any);
+    return mediaSvc.getDownloadUrl(vc.mediaId);
+  }
+
+  async uploadMediaForClass(
+    classId: string,
+    uploaderId: string,
+    filename: string,
+    mimeType: string,
+    size: number,
+    type: 'VIDEO' | 'AUDIO' | 'IMAGE' | 'FILE',
+    metadata?: any,
+  ) {
+    const mediaSvc = new MediaService(this.prisma as any);
+    const { media, signedUploadUrl } = await mediaSvc.createUploadRecord(
+      uploaderId,
+      AppSource.ELITES,
+      filename,
+      mimeType,
+      size,
+      type,
+      metadata,
+    );
+
+    // attach media to class (optional)
+    try {
+      await this.prisma.videoClass.update({ where: { id: classId }, data: { mediaId: media.id } });
+    } catch (e) {
+      // ignore - class may not exist yet, caller will attach later
+    }
+
+    return { media, signedUploadUrl };
+  }
+
 }
+

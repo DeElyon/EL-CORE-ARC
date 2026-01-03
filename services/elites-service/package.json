@@ -2,7 +2,7 @@
   "name": "@el-verse/elites-service",
   "version": "0.1.0",
   "private": true,
-  "scripts": { "test": "jest --passWithNoTests" },
+  "scripts": { "test": "jest --passWithNoTests --config jest.config.cjs" },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
     "@el-verse/database": "workspace:*"
