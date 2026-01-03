@@ -216,11 +216,21 @@ export class NexelService {
     giftType: string,
     amount: number,
   ) {
+    // Fetch sender/receiver snapshot
+    const [sender, receiver] = await Promise.all([
+      this.prisma.user.findUnique({ where: { id: senderId }, select: { verseId: true, fullName: true } }),
+      this.prisma.user.findUnique({ where: { id: receiverId }, select: { verseId: true, fullName: true } }),
+    ]);
+
     const gift = await this.prisma.gift.create({
       data: {
         streamId,
         senderId,
+        senderVerseId: sender?.verseId,
+        senderName: sender?.fullName,
         receiverId,
+        receiverVerseId: receiver?.verseId,
+        receiverName: receiver?.fullName,
         giftType,
         amount,
       },

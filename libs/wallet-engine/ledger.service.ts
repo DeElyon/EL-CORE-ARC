@@ -151,7 +151,13 @@ export class LedgerService {
         },
       });
 
-      // Create transactions
+      // Fetch counterparty info
+      const [fromUser, toUser] = await Promise.all([
+        tx.user.findUnique({ where: { id: fromUserId }, select: { verseId: true, fullName: true } }),
+        tx.user.findUnique({ where: { id: toUserId }, select: { verseId: true, fullName: true } }),
+      ]);
+
+      // Create transactions with counterparty snapshots
       await tx.transaction.createMany({
         data: [
           {
@@ -160,6 +166,8 @@ export class LedgerService {
             type: TransactionType.DEBIT,
             appSource,
             description: description || `Transfer to ${toUserId}`,
+            counterpartyVerseId: toUser?.verseId,
+            counterpartyName: toUser?.fullName,
             status: 'SUCCESS',
           },
           {
@@ -168,6 +176,8 @@ export class LedgerService {
             type: TransactionType.CREDIT,
             appSource,
             description: description || `Transfer from ${fromUserId}`,
+            counterpartyVerseId: fromUser?.verseId,
+            counterpartyName: fromUser?.fullName,
             status: 'SUCCESS',
           },
         ],
