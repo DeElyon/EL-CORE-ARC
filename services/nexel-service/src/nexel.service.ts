@@ -8,6 +8,7 @@ export class NexelService {
   constructor(
     private prisma: PrismaService,
     private nelly: NellyAI,
+    private mediaService?: any, // optional for tests & DI
   ) {}
 
   /**
@@ -246,6 +247,64 @@ export class NexelService {
 
     return gift;
   }
+
+  /**
+   * Save (bookmark) a post for a user
+   */
+  async savePost(userId: string, postId: string) {
+    return this.prisma.savedPost.create({
+      data: {
+        postId,
+        userId,
+      },
+    });
+  }
+
+  async unsavePost(userId: string, postId: string) {
+    const existing = await this.prisma.savedPost.findUnique({ where: { postId_userId: { postId, userId } } });
+    if (existing) {
+      await this.prisma.savedPost.delete({ where: { id: existing.id } });
+      return { removed: true };
+    }
+    return { removed: false };
+  }
+
+  async getSavedPosts(userId: string, limit = 20, offset = 0) {
+    return this.prisma.savedPost.findMany({
+      where: { userId },
+      include: { post: { include: { author: { select: { id: true, username: true, avatarUrl: true } } } } },
+      take: limit,
+      skip: offset,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /**
+   * Repost (share) - create a PostShare for the post
+   */
+  async repost(userId: string, postId: string) {
+    return this.prisma.postShare.create({ data: { postId, userId } });
+  }
+
+  /**
+   * Get a download URL for a post's media
+   */
+  async getPostDownloadUrl(postId: string) {
+    const post = await this.prisma.post.findUnique({ where: { id: postId } });
+    if (!post || !post.mediaUrl) throw new Error('No media to download');
+
+    // If mediaService is present, try to resolve media record
+    if (this.mediaService) {
+      const media = await this.prisma.media.findFirst({ where: { url: post.mediaUrl } });
+      if (media) {
+        return this.mediaService.getDownloadUrl(media.id);
+      }
+    }
+
+    // Fallback: return the URL directly
+    return post.mediaUrl;
+  }
+
 
   /**
    * Get trending hashtags

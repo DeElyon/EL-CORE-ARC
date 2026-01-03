@@ -252,4 +252,67 @@ export class ElitesController {
   async getAvailableLearners(@CurrentUser() user: any) {
     return this.elitesService.getAvailableLearners(user.sub);
   }
+
+  // ============================================
+  // VIDEO CLASS ENDPOINTS
+  // ============================================
+
+  @Post('video-classes')
+  @ApiOperation({ summary: 'Create a video class' })
+  async createVideoClass(
+    @CurrentUser() user: any,
+    @Body() body: {
+      title: string;
+      description?: string;
+      scheduledAt?: string;
+      duration?: number;
+      courseId?: string;
+      lessonId?: string;
+    },
+  ) {
+    return this.elitesService.createVideoClass(
+      user.sub,
+      body.title,
+      body.description,
+      body.scheduledAt ? new Date(body.scheduledAt) : undefined,
+      body.duration,
+      body.courseId,
+      body.lessonId,
+    );
+  }
+
+  @Get('video-classes')
+  @ApiOperation({ summary: 'List video classes for instructor' })
+  async listVideoClasses(@CurrentUser() user: any) {
+    return this.elitesService.listVideoClasses(user.sub);
+  }
+
+  @Get('video-classes/:id')
+  @ApiOperation({ summary: 'Get a video class by id' })
+  async getVideoClass(@Param('id') id: string) {
+    return this.elitesService.getVideoClass(id);
+  }
+
+  @Get('video-classes/:id/download')
+  @ApiOperation({ summary: 'Get download url for class media' })
+  async downloadVideoClass(@Param('id') id: string) {
+    return this.elitesService.getVideoClassDownload(id);
+  }
+
+  @Post('video-classes/:id/upload')
+  @ApiOperation({ summary: 'Create an upload record for a class' })
+  async uploadForClass(
+    @CurrentUser() user: any,
+    @Param('id') id: string,
+    @Body() body: { filename: string; mimeType: string; size: number; type: 'VIDEO' | 'AUDIO' | 'IMAGE' | 'FILE' },
+  ) {
+    return this.elitesService.uploadMediaForClass(
+      id,
+      user.sub,
+      body.filename,
+      body.mimeType,
+      body.size,
+      body.type,
+    );
+  }
 }

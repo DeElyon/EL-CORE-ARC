@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "paths": {
+      "@el-verse/shared-utils": ["../../libs/shared-utils/src/index.ts"],
+      "@el-verse/ai-hub": ["../../libs/ai-hub/index.ts"],
+      "@el-verse/wallet-engine": ["../../libs/wallet-engine/index.ts"],
+      "@el-verse/database": ["../../libs/database/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*", "test/**/*"]
+}
