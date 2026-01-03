@@ -2,6 +2,9 @@
   "name": "@el-verse/auth-bridge",
   "version": "0.1.0",
   "private": true,
+  "scripts": {
+    "test": "jest --passWithNoTests"
+  },
   "dependencies": {
     "@el-verse/database": "workspace:*",
     "@nestjs/common": "^10.0.0",
