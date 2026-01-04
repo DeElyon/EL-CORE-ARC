@@ -5,3 +5,4 @@ export * from './validation';
 export * from './media.service';
 export * from './processing.service';
 export * from './recording.service';
+export * from './queue-producer';

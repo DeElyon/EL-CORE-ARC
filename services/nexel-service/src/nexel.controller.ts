@@ -6,6 +6,7 @@ import {
   Param,
   Query,
   UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { NexelService } from './nexel.service';

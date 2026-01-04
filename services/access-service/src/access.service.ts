@@ -175,6 +175,32 @@ export class AccessService {
   async generateCV(internId: string) {
     return await this.uno.buildCV(internId);
   }
+
+  /** Embed a tutorial (walkthrough video) into a task or internship */
+  async embedTutorial(internshipId: string, title: string, videoUrl: string) {
+    return await this.prisma.tutorial.create({ data: { internshipId, title, videoUrl } });
+  }
+
+  /** Request peer help for a task; returns a moderated request record */
+  async requestPeerHelp(taskId: string, fromInternId: string, message: string) {
+    return await this.prisma.peerHelpRequest.create({ data: { taskId, fromInternId, message, status: 'PENDING' } });
+  }
+
+  /** Award a badge to a user */
+  async awardBadge(userId: string, badgeKey: string, reason?: string) {
+    return await this.prisma.badge.create({ data: { userId, key: badgeKey, reason } });
+  }
+
+  /** Get leaderboard for internships (by verseScore or completed tasks) */
+  async getLeaderboard(limit = 20) {
+    return await this.prisma.user.findMany({ orderBy: { verseScore: 'desc' }, take: limit, select: { id: true, username: true, verseScore: true, devStreak: true } });
+  }
+
+  /** Progress analytics: returns simple time-series counts for completed tasks */
+  async getProgressAnalytics(internId: string) {
+    const tasks = await this.prisma.task.findMany({ where: { internship: { internId } }, select: { submittedAt: true, status: true } });
+    return { totalTasks: tasks.length, completed: tasks.filter((t) => t.status === 'COMPLETED').length };
+  }
 }
 
 

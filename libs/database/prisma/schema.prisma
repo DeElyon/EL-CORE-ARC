@@ -76,6 +76,9 @@ model User {
   instructorVideoClasses VideoClass[] @relation("InstructorClasses")
   startedCallSessions CallSession[]  @relation("StartedCalls")
   callParticipantRecords CallParticipant[] @relation("UserCallParticipants")
+  // ELACCESS relations
+  peerHelpRequests PeerHelpRequest[]
+  badges Badge[]
 
   // Verse ID & Identity
   fullName        String?           // Full legal or display name
@@ -462,6 +465,7 @@ model Internship {
   progress      Int      @default(0) // 0-100
   startedAt     DateTime @default(now())
   completedAt   DateTime?
+  tutorials     Tutorial[]
 }
 
 model Task {
@@ -475,6 +479,7 @@ model Task {
   dueDate       DateTime
   submittedAt   DateTime?
   createdAt     DateTime @default(now())
+  peerHelpRequests PeerHelpRequest[]
 }
 
 // ============================================
@@ -786,6 +791,41 @@ model Recording {
   startedAt  DateTime @default(now())
   endedAt    DateTime?
   createdAt  DateTime @default(now())
+}
+
+// ============================================
+// EL ACCESS supplementary models (tutorials, peer help, badges)
+// ============================================
+
+model Tutorial {
+  id           String   @id @default(uuid())
+  internshipId String
+  internship   Internship @relation(fields: [internshipId], references: [id], onDelete: Cascade)
+  title        String
+  videoUrl     String
+  createdAt    DateTime @default(now())
+}
+
+model PeerHelpRequest {
+  id           String   @id @default(uuid())
+  taskId       String
+  task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  fromInternId String
+  fromIntern   User     @relation(fields: [fromInternId], references: [id])
+  message      String
+  status       String   @default("PENDING")
+  createdAt    DateTime @default(now())
+  moderatedBy  String?
+  moderatedAt  DateTime?
+}
+
+model Badge {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key       String
+  reason    String?
+  awardedAt DateTime @default(now())
 }
 
 // ============================================

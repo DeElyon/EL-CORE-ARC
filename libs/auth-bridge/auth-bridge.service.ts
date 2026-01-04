@@ -141,6 +141,32 @@ export class AuthBridgeService {
   }
 
   /**
+   * Login using biometric data (fingerprint or facial data).
+   * `identifier` can be email, username or verseId.
+   */
+  async loginWithBiometric(identifier: string, facialData?: string, fingerprintData?: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ email: identifier }, { username: identifier }, { verseId: identifier }],
+      },
+    });
+
+    if (!user) throw new UnauthorizedException('Invalid credentials');
+
+    // Simple equality check; production should use proper biometric matching
+    const facialMatch = !facialData || user.facialData === facialData;
+    const fingerprintMatch = !fingerprintData || user.fingerprintData === fingerprintData;
+
+    if (!facialMatch && !fingerprintMatch) {
+      throw new UnauthorizedException('Biometric verification failed');
+    }
+
+    await this.prisma.user.update({ where: { id: user.id }, data: { lastActiveAt: new Date() } });
+
+    return this.generateVerseToken(user);
+  }
+
+  /**
    * Generate Verse Token (JWT)
    */
   async generateVerseToken(user: any) {

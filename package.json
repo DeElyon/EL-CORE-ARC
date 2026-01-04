@@ -8,6 +8,9 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "start:api": "pnpm --filter ./apps/arc-core-api start",
+    "upload-worker": "ts-node -r tsconfig-paths/register libs/shared-utils/upload-worker.ts",
+    "queue-worker": "ts-node -r tsconfig-paths/register libs/shared-utils/queue-worker.ts",
+    "db:seed": "ts-node -r tsconfig-paths/register libs/database/seed.ts",
     "db:generate": "pnpm --filter ./libs/database exec prisma generate",
     "db:migrate": "pnpm --filter ./libs/database exec prisma migrate dev",
     "db:push": "pnpm --filter ./libs/database exec prisma db push",
@@ -19,9 +22,17 @@
     "jest": "^30.2.0",
     "ts-jest": "^29.4.6",
     "turbo": "^1.10.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0"
   },
   "dependencies": {
+    "bullmq": "^1.83.0",
+    "ioredis": "^5.3.2",
+    "fluent-ffmpeg": "^2.1.2",
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "prom-client": "^14.0.1",
+    "@sentry/node": "^8.0.0",
     "@aws-sdk/client-s3": "^3.962.0",
     "@aws-sdk/s3-request-presigner": "^3.962.0",
     "@google/generative-ai": "^0.1.0",

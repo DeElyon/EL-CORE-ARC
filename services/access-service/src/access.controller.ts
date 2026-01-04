@@ -77,6 +77,39 @@ export class AccessController {
   async generateCV(@CurrentUser() user: any) {
     return this.accessService.generateCV(user.sub);
   }
+
+  @Post('internships/:id/tutorials')
+  @ApiOperation({ summary: 'Embed tutorial video for internship' })
+  async embedTutorial(
+    @Param('id') id: string,
+    @Body() body: { title: string; videoUrl: string },
+  ) {
+    return this.accessService.embedTutorial(id, body.title, body.videoUrl);
+  }
+
+  @Post('tasks/:taskId/peer-help')
+  @ApiOperation({ summary: 'Request peer help for a task (moderated)' })
+  async requestPeerHelp(@Param('taskId') taskId: string, @CurrentUser() user: any, @Body() body: { message: string }) {
+    return this.accessService.requestPeerHelp(taskId, user.sub, body.message);
+  }
+
+  @Post('badges')
+  @ApiOperation({ summary: 'Award badge to a user' })
+  async awardBadge(@Body() body: { userId: string; badgeKey: string; reason?: string }) {
+    return this.accessService.awardBadge(body.userId, body.badgeKey, body.reason);
+  }
+
+  @Get('leaderboard')
+  @ApiOperation({ summary: 'Get leaderboard' })
+  async getLeaderboard() {
+    return this.accessService.getLeaderboard(20);
+  }
+
+  @Get('analytics')
+  @ApiOperation({ summary: 'Get progress analytics for current user' })
+  async getAnalytics(@CurrentUser() user: any) {
+    return this.accessService.getProgressAnalytics(user.sub);
+  }
 }
 
 
