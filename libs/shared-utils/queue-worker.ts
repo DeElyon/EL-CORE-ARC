@@ -1,5 +1,7 @@
 import { Queue, Worker, QueueScheduler, Job } from 'bullmq';
 import IORedis from 'ioredis';
+import * as Sentry from '@sentry/node';
+import * as client from 'prom-client';
 import { PrismaService } from '@el-verse/database';
 import { MediaService } from './media.service';
 import { ProcessingService } from './processing.service';
@@ -8,6 +10,26 @@ const connection = new IORedis(process.env.REDIS_URL || 'redis://127.0.0.1:6379'
 const queueName = process.env.MEDIA_QUEUE_NAME || 'media-processing';
 
 async function start() {
+  // init Sentry
+  if (process.env.SENTRY_DSN) Sentry.init({ dsn: process.env.SENTRY_DSN });
+
+  // init Prometheus metrics
+  client.collectDefaultMetrics();
+  const queueJobs = new client.Counter({ name: 'el_queue_jobs_processed_total', help: 'Total processed media jobs' });
+  const queueFailures = new client.Counter({ name: 'el_queue_jobs_failed_total', help: 'Total failed media jobs' });
+
+  // Expose metrics on small HTTP server
+  const metricsPort = Number(process.env.METRICS_PORT || 9400);
+  const http = await import('http');
+  http.createServer(async (req, res) => {
+    if (req.url === '/metrics') {
+      res.setHeader('Content-Type', client.register.contentType);
+      res.end(await client.register.metrics());
+    } else {
+      res.statusCode = 404;
+      res.end();
+    }
+  }).listen(metricsPort, () => console.log(`Metrics available on http://localhost:${metricsPort}/metrics`));
   const prisma = new PrismaService();
   await prisma.$connect();
 
@@ -25,8 +47,11 @@ async function start() {
       try {
         await processing.processMedia(mediaId);
         console.log('[queue] done', mediaId);
+        queueJobs.inc();
       } catch (err: any) {
         console.error('[queue] failed', mediaId, err?.message || err);
+        queueFailures.inc();
+        Sentry.captureException(err);
         throw err;
       }
     },

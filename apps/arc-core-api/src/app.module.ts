@@ -49,6 +49,7 @@ import { ElitesController } from '@el-verse/elites-service';
 import { ProcessingService, MediaService } from '@el-verse/shared-utils';
 import { MediaController } from './controllers/media.controller';
 import { CallController } from './controllers/call.controller';
+import { HealthController } from './controllers/health.controller';
 import { CallService } from './services/call.service';
 
 // Gateways
@@ -88,6 +89,7 @@ import { WalletController } from './controllers/wallet.controller';
     MediaController,
     CallController,
     RecordingsController,
+      HealthController,
   ],
   providers: [
     // Database

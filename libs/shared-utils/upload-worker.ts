@@ -1,6 +1,8 @@
 import { PrismaService } from '@el-verse/database';
 import { MediaService } from './media.service';
 import { ProcessingService } from './processing.service';
+import * as Sentry from '@sentry/node';
+import * as client from 'prom-client';
 
 async function main() {
   const prisma = new PrismaService();
@@ -10,6 +12,11 @@ async function main() {
   const processor = new ProcessingService(prisma as any, mediaService as any);
 
   console.log('Upload worker started — polling for UPLOADED media');
+
+  if (process.env.SENTRY_DSN) Sentry.init({ dsn: process.env.SENTRY_DSN });
+  client.collectDefaultMetrics();
+  const processedCounter = new client.Counter({ name: 'el_upload_processed_total', help: 'Processed uploads' });
+
 
   let running = true;
   process.on('SIGINT', () => (running = false));

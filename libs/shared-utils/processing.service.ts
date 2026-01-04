@@ -1,11 +1,16 @@
 import { PrismaService } from '@el-verse/database';
 import { MediaService } from './media.service';
-import ffmpeg from 'fluent-ffmpeg';
+import * as ffmpeg from 'fluent-ffmpeg';
 import ffmpegPath from '@ffmpeg-installer/ffmpeg';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 
-ffmpeg.setFfmpegPath(ffmpegPath.path as string);
+try {
+  const ffPath = (ffmpegPath as any)?.path || (ffmpegPath as any)?.default?.path;
+  if (ffPath) (ffmpeg as any).setFfmpegPath(ffPath as string);
+} catch (e) {
+  // ignore if ffmpeg path not available in this environment
+}
 
 export class ProcessingService {
   constructor(private prisma: PrismaService, private mediaService: MediaService) {}

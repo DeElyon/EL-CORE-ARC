@@ -1,4 +1,4 @@
-import { Controller, Post, Param, Headers, HttpException, HttpStatus, Get } from '@nestjs/common';
+import { Controller, Post, Param, Headers, HttpException, HttpStatus, Get, Body } from '@nestjs/common';
 import { ProcessingService, MediaService, enqueueMedia } from '@el-verse/shared-utils';
 
 @Controller('media')
