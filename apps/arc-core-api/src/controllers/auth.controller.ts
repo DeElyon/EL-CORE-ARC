@@ -60,6 +60,12 @@ export class AuthController {
     return this.authBridge.login(body.email, body.password);
   }
 
+  @Post('login/biometric')
+  @ApiOperation({ summary: 'Login using biometric data (fingerprint or facial)' })
+  async loginBiometric(@Body() body: { identifier: string; facialData?: string; fingerprintData?: string }) {
+    return this.authBridge.loginWithBiometric(body.identifier, body.facialData, body.fingerprintData);
+  }
+
   @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

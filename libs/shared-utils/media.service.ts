@@ -76,6 +76,21 @@ export class MediaService {
     // If a public URL is stored, return it; otherwise derive from storageKey
     if (media.url) return media.url;
     const cdnDomain = process.env.CDN_DOMAIN || 'cdn.example.com';
+
+    // If we have an S3 bucket configured, generate a signed GET URL
+    if (this.bucket && media.storageKey) {
+      const s3 = this.getS3();
+      const { GetObjectCommand } = await import('@aws-sdk/client-s3');
+      const cmd = new GetObjectCommand({ Bucket: this.bucket, Key: media.storageKey });
+      try {
+        const signed = await getSignedUrl(s3, cmd, { expiresIn: 300 }); // 5 minutes
+        return signed;
+      } catch (err) {
+        // fallback to CDN url
+        return `https://${cdnDomain}/media/${media.storageKey}`;
+      }
+    }
+
     return `https://${cdnDomain}/media/${media.storageKey || media.id}`;
   }
 

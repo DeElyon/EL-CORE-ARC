@@ -120,6 +120,7 @@ import { WalletController } from './controllers/wallet.controller';
     // Shared Utils
     ChatService,
     NotificationService,
+    MediaService,
 
     // Services
     NexelService,
