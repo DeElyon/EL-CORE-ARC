@@ -87,6 +87,48 @@ docker-compose up -d
 docker-compose logs -f api
 ```
 
+## Media uploads, workers & realtime (S3 / WebSocket)
+
+Notes and commands to run the S3 upload flow, processing worker, and realtime gateways used by NEXEL/ELITES/NEXEL streams.
+
+- Required environment variables (minimum):
+  - `DATABASE_URL` : Postgres connection string
+  - `JWT_SECRET` : API JWT secret
+  - `S3_BUCKET` : S3 bucket name for media
+  - `S3_REGION` : S3 region (default `us-east-1`)
+  - `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` : AWS credentials
+  - `CDN_DOMAIN` : Optional CDN host for fallback URLs
+  - `UPLOAD_COMPLETE_TOKEN` : Secret header token used by storage to call `/media/:id/complete`
+  - `REDIS_URL` : (optional) for job queues and scaling
+
+- Generate Prisma client and run migrations before starting the API or workers:
+
+```bash
+pnpm db:generate
+pnpm db:migrate
+```
+
+- Start API (includes WebSocket gateways for `call` and `stream` namespaces):
+
+```bash
+pnpm start:api
+# or
+pnpm dev
+```
+
+- Start the upload worker (polls `Media.status = UPLOADED` and runs processing):
+
+```bash
+npm run upload-worker
+```
+
+Notes:
+- The `MediaService` provides `createUploadRecord(...)` which returns a presigned PUT URL (S3) when `S3_BUCKET` is configured. Clients should PUT the file to that presigned URL, then the storage system (or the client) must call `POST /media/:id/complete` with the `x-upload-complete-token` header to enqueue processing.
+- The `upload-worker` and `queue-worker` expect the same codebase imports to resolve (monorepo aliases like `@el-verse/database`). Ensure you run inside the monorepo with dependencies installed and `pnpm db:generate` run so `@prisma/client` and the `libs/database` package are available.
+- If tests or workers fail with "Cannot find module '@el-verse/database'", run `pnpm install` and `pnpm db:generate`, or run via the monorepo toolchain (`pnpm --filter ./libs/database exec prisma generate`) so path aliases and generated Prisma client are resolvable.
+
+If you want, I can add a small troubleshooting section or provide a Dockerized worker service file next.
+
 ## 🔑 Key Features
 
 ### 1. Unified Authentication (Verse-ID)
