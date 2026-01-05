@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { PrismaService } from '../../../libs/database/prisma.service';
 import { NellyAI } from '../../../libs/ai-hub/nelly/nelly.service';
 import { AppSource, PostType } from '@prisma/client';
@@ -8,7 +8,7 @@ export class NexelService {
   constructor(
     private prisma: PrismaService,
     private nelly: NellyAI,
-    private mediaService?: any, // optional for tests & DI
+    @Optional() private mediaService?: any, // optional for tests & DI
   ) {}
 
   /**
