@@ -110,6 +110,54 @@ export class AccessController {
   async getAnalytics(@CurrentUser() user: any) {
     return this.accessService.getProgressAnalytics(user.sub);
   }
+
+  @Get('calendar')
+  @ApiOperation({ summary: 'Get calendar view (Gantt chart) for tasks' })
+  async getCalendar(@CurrentUser() user: any) {
+    return this.accessService.getCalendarView(user.sub);
+  }
+
+  @Post('tasks/:taskId/reminder')
+  @ApiOperation({ summary: 'Send deadline reminder notification' })
+  async sendReminder(@Param('taskId') taskId: string) {
+    return this.accessService.sendDeadlineReminder(taskId);
+  }
+
+  @Post('internships/:id/integrations/github')
+  @ApiOperation({ summary: 'Connect GitHub repository' })
+  async connectGitHub(
+    @Param('id') id: string,
+    @Body() body: { repoUrl: string; accessToken?: string },
+  ) {
+    return this.accessService.connectGitHubRepo(id, body.repoUrl, body.accessToken);
+  }
+
+  @Post('internships/:id/integrations/replit')
+  @ApiOperation({ summary: 'Connect Replit project' })
+  async connectReplit(
+    @Param('id') id: string,
+    @Body() body: { projectUrl: string },
+  ) {
+    return this.accessService.connectReplitProject(id, body.projectUrl);
+  }
+
+  @Post('internships/:id/integrations/drive')
+  @ApiOperation({ summary: 'Connect Google Drive folder' })
+  async connectDrive(
+    @Param('id') id: string,
+    @Body() body: { folderId: string; accessToken?: string },
+  ) {
+    return this.accessService.connectGoogleDrive(id, body.folderId, body.accessToken);
+  }
+
+  @Post('tasks/:taskId/collaborate')
+  @ApiOperation({ summary: 'Start collaboration session for group task' })
+  async startCollaboration(
+    @Param('taskId') taskId: string,
+    @Body() body: { participants: string[] },
+  ) {
+    return this.accessService.startCollaborationSession(taskId, body.participants);
+  }
 }
 
 

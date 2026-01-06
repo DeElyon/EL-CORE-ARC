@@ -2,13 +2,14 @@ import request from 'supertest';
 import { MediaController } from '../controllers/media.controller';
 
 const mockProcessing: any = { processMedia: jest.fn().mockResolvedValue({}) };
+const mockMediaService: any = { getDownloadUrl: jest.fn().mockResolvedValue('https://cdn.example.com/m1') };
 
 describe('MediaController', () => {
   let ctrl: MediaController;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    ctrl = new MediaController(mockProcessing as any);
+    ctrl = new MediaController(mockProcessing as any, mockMediaService as any);
   });
 
   it('rejects without token', async () => {
