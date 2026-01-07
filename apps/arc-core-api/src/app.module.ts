@@ -70,6 +70,7 @@ import { WalletController } from './controllers/wallet.controller';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '../../.env',
     }),
     JwtModule.register({
       global: true,
