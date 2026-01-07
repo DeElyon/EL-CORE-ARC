@@ -3,7 +3,7 @@ import { PrismaService } from '@el-verse/database';
 import { LibrarianAI } from '../../../libs/ai-hub/index';
 import { WalletEngineService } from '../../../libs/wallet-engine/index';
 import { MediaService } from '../../../libs/shared-utils/media.service';
-import { AppSource, UserRole, ClassStatus, TutorLearnerStatus } from '@prisma/client';
+import { Prisma, UserRole, ClassStatus, TutorLearnerStatus } from '@prisma/client';
 
 @Injectable()
 export class ElitesService {
@@ -85,7 +85,7 @@ export class ElitesService {
       await this.walletEngine.getLedger().debit(
         userId,
         Number(course.price),
-        AppSource.ELITES,
+        Prisma.AppSource.ELITES,
         `Enrollment in: ${course.title}`,
         courseId,
       );
@@ -209,7 +209,7 @@ export class ElitesService {
     await this.walletEngine.getLedger().credit(
       userId,
       100, // Base reward
-      AppSource.ELITES,
+      Prisma.AppSource.ELITES,
       `Course completion reward`,
       courseId,
     );
@@ -276,7 +276,7 @@ export class ElitesService {
       await this.walletEngine.getLedger().credit(
         userId,
         10,
-        AppSource.ELITES,
+        Prisma.AppSource.ELITES,
         `Quiz passed: ${score}%`,
         quizId,
       );
@@ -859,7 +859,7 @@ export class ElitesService {
     const mediaSvc = new MediaService(this.prisma as any);
     const { media, signedUploadUrl } = await mediaSvc.createUploadRecord(
       uploaderId,
-      AppSource.ELITES,
+      Prisma.AppSource.ELITES,
       filename,
       mimeType,
       size,

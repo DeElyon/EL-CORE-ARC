@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
-import { NotificationType, AppSource } from '@prisma/client';
+import { Prisma, NotificationType, AppSource } from '@prisma/client';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
@@ -98,10 +98,10 @@ export class NotificationService {
   async notifyJobPosted(clientId: string, jobTitle: string) {
     return this.createNotification(
       clientId,
-      NotificationType.JOB_POSTED,
+      Prisma.NotificationType.JOB_POSTED,
       'Job Posted Successfully',
       `Your job "${jobTitle}" has been posted and is now visible to developers.`,
-      AppSource.MY_SPACE,
+      Prisma.AppSource.MY_SPACE,
     );
   }
 
@@ -111,10 +111,10 @@ export class NotificationService {
   async notifyProjectAssigned(developerId: string, projectTitle: string) {
     return this.createNotification(
       developerId,
-      NotificationType.PROJECT_ASSIGNED,
+      Prisma.NotificationType.PROJECT_ASSIGNED,
       'Project Assigned',
       `You have been assigned to project: "${projectTitle}"`,
-      AppSource.ELCODERS,
+      Prisma.AppSource.ELCODERS,
     );
   }
 
@@ -124,10 +124,10 @@ export class NotificationService {
   async notifyContractAccepted(clientId: string, developerName: string, projectTitle: string) {
     return this.createNotification(
       clientId,
-      NotificationType.CONTRACT_ACCEPTED,
+      Prisma.NotificationType.CONTRACT_ACCEPTED,
       'Contract Accepted',
       `Developer ${developerName} has accepted the contract for "${projectTitle}"`,
-      AppSource.MY_SPACE,
+      Prisma.AppSource.MY_SPACE,
     );
   }
 
@@ -137,10 +137,10 @@ export class NotificationService {
   async notifyClassStarting(studentId: string, courseTitle: string, startTime: Date) {
     return this.createNotification(
       studentId,
-      NotificationType.CLASS_STARTING,
+      Prisma.NotificationType.CLASS_STARTING,
       'Class Starting Soon',
       `Your enrolled course "${courseTitle}" is starting at ${startTime.toLocaleString()}`,
-      AppSource.ELITES,
+      Prisma.AppSource.ELITES,
     );
   }
 
@@ -150,10 +150,10 @@ export class NotificationService {
   async notifyFundingApproved(userId: string, amount: number) {
     return this.createNotification(
       userId,
-      NotificationType.FUNDING_APPROVED,
+      Prisma.NotificationType.FUNDING_APPROVED,
       'Funding Approved',
       `Your funding request of ${amount} WTH has been approved and credited to your wallet.`,
-      AppSource.NEXEL, // Can be any app source
+      Prisma.AppSource.NEXEL, // Can be any app source
     );
   }
 
@@ -163,10 +163,10 @@ export class NotificationService {
   async notifyWithdrawalProcessed(userId: string, amount: number, method: string) {
     return this.createNotification(
       userId,
-      NotificationType.WITHDRAWAL_PROCESSED,
+      Prisma.NotificationType.WITHDRAWAL_PROCESSED,
       'Withdrawal Processed',
       `Your withdrawal of ${amount} WTH via ${method} has been processed.`,
-      AppSource.NEXEL, // Can be any app source
+      Prisma.AppSource.NEXEL, // Can be any app source
     );
   }
 
@@ -176,10 +176,10 @@ export class NotificationService {
   async notifyMarketplacePurchase(sellerId: string, buyerName: string, itemTitle: string) {
     return this.createNotification(
       sellerId,
-      NotificationType.MARKETPLACE_SALE,
+      Prisma.NotificationType.MARKETPLACE_SALE,
       'New Purchase',
       `${buyerName} has purchased your item "${itemTitle}". Please confirm the transaction to release funds.`,
-      AppSource.NEXEL,
+      Prisma.AppSource.NEXEL,
     );
   }
 
@@ -189,10 +189,10 @@ export class NotificationService {
   async notifyMarketplaceSaleConfirmed(buyerId: string, sellerName: string, itemTitle: string) {
     return this.createNotification(
       buyerId,
-      NotificationType.MARKETPLACE_PURCHASE,
+      Prisma.NotificationType.MARKETPLACE_PURCHASE,
       'Purchase Confirmed',
       `Seller ${sellerName} has confirmed your purchase of "${itemTitle}". Funds have been released.`,
-      AppSource.NEXEL,
+      Prisma.AppSource.NEXEL,
     );
   }
 
