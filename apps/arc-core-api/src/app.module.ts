@@ -97,6 +97,7 @@ import { WalletController } from './controllers/wallet.controller';
 
     // Auth
     AuthBridgeService,
+    // Global JWT guard (enforces authentication across controllers)
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
