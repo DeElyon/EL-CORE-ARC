@@ -98,10 +98,10 @@ export class NotificationService {
   async notifyJobPosted(clientId: string, jobTitle: string) {
     return this.createNotification(
       clientId,
-      Prisma.NotificationType.JOB_POSTED,
+      NotificationType.JOB_POSTED,
       'Job Posted Successfully',
       `Your job "${jobTitle}" has been posted and is now visible to developers.`,
-      Prisma.AppSource.MY_SPACE,
+      AppSource.MY_SPACE,
     );
   }
 
@@ -111,10 +111,10 @@ export class NotificationService {
   async notifyProjectAssigned(developerId: string, projectTitle: string) {
     return this.createNotification(
       developerId,
-      Prisma.NotificationType.PROJECT_ASSIGNED,
+      NotificationType.PROJECT_ASSIGNED,
       'Project Assigned',
       `You have been assigned to project: "${projectTitle}"`,
-      Prisma.AppSource.ELCODERS,
+      AppSource.ELCODERS,
     );
   }
 
@@ -124,10 +124,10 @@ export class NotificationService {
   async notifyContractAccepted(clientId: string, developerName: string, projectTitle: string) {
     return this.createNotification(
       clientId,
-      Prisma.NotificationType.CONTRACT_ACCEPTED,
+      NotificationType.CONTRACT_ACCEPTED,
       'Contract Accepted',
       `Developer ${developerName} has accepted the contract for "${projectTitle}"`,
-      Prisma.AppSource.MY_SPACE,
+      AppSource.MY_SPACE,
     );
   }
 
@@ -137,10 +137,10 @@ export class NotificationService {
   async notifyClassStarting(studentId: string, courseTitle: string, startTime: Date) {
     return this.createNotification(
       studentId,
-      Prisma.NotificationType.CLASS_STARTING,
+      NotificationType.CLASS_STARTING,
       'Class Starting Soon',
       `Your enrolled course "${courseTitle}" is starting at ${startTime.toLocaleString()}`,
-      Prisma.AppSource.ELITES,
+      AppSource.ELITES,
     );
   }
 
@@ -150,10 +150,10 @@ export class NotificationService {
   async notifyFundingApproved(userId: string, amount: number) {
     return this.createNotification(
       userId,
-      Prisma.NotificationType.FUNDING_APPROVED,
+      NotificationType.FUNDING_APPROVED,
       'Funding Approved',
       `Your funding request of ${amount} WTH has been approved and credited to your wallet.`,
-      Prisma.AppSource.NEXEL, // Can be any app source
+      AppSource.NEXEL, // Can be any app source
     );
   }
 
@@ -163,10 +163,10 @@ export class NotificationService {
   async notifyWithdrawalProcessed(userId: string, amount: number, method: string) {
     return this.createNotification(
       userId,
-      Prisma.NotificationType.WITHDRAWAL_PROCESSED,
+      NotificationType.WITHDRAWAL_PROCESSED,
       'Withdrawal Processed',
       `Your withdrawal of ${amount} WTH via ${method} has been processed.`,
-      Prisma.AppSource.NEXEL, // Can be any app source
+      AppSource.NEXEL, // Can be any app source
     );
   }
 
@@ -176,10 +176,10 @@ export class NotificationService {
   async notifyMarketplacePurchase(sellerId: string, buyerName: string, itemTitle: string) {
     return this.createNotification(
       sellerId,
-      Prisma.NotificationType.MARKETPLACE_SALE,
+      NotificationType.MARKETPLACE_SALE,
       'New Purchase',
       `${buyerName} has purchased your item "${itemTitle}". Please confirm the transaction to release funds.`,
-      Prisma.AppSource.NEXEL,
+      AppSource.NEXEL,
     );
   }
 
@@ -189,10 +189,10 @@ export class NotificationService {
   async notifyMarketplaceSaleConfirmed(buyerId: string, sellerName: string, itemTitle: string) {
     return this.createNotification(
       buyerId,
-      Prisma.NotificationType.MARKETPLACE_PURCHASE,
+      NotificationType.MARKETPLACE_PURCHASE,
       'Purchase Confirmed',
       `Seller ${sellerName} has confirmed your purchase of "${itemTitle}". Funds have been released.`,
-      Prisma.AppSource.NEXEL,
+      AppSource.NEXEL,
     );
   }
 

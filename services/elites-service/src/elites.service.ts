@@ -3,7 +3,8 @@ import { PrismaService } from '@el-verse/database';
 import { LibrarianAI } from '../../../libs/ai-hub/index';
 import { WalletEngineService } from '../../../libs/wallet-engine/index';
 import { MediaService } from '../../../libs/shared-utils/media.service';
-import { Prisma, UserRole, ClassStatus, TutorLearnerStatus } from '@prisma/client';
+import { NotificationService } from '../../../libs/shared-utils/notification.service';
+import { Prisma, UserRole, ClassStatus, TutorLearnerStatus, AppSource, NotificationType } from '@prisma/client';
 
 @Injectable()
 export class ElitesService {
@@ -11,6 +12,7 @@ export class ElitesService {
     private prisma: PrismaService,
     private librarian: LibrarianAI,
     private walletEngine: WalletEngineService,
+    private notificationService: NotificationService,
   ) {}
 
   /**
@@ -85,19 +87,37 @@ export class ElitesService {
       await this.walletEngine.getLedger().debit(
         userId,
         Number(course.price),
-        Prisma.AppSource.ELITES,
+        AppSource.ELITES,
         `Enrollment in: ${course.title}`,
         courseId,
       );
     }
 
-    return await this.prisma.enrollment.create({
+    const enrollment = await this.prisma.enrollment.create({
       data: {
         userId,
         courseId,
         progress: 0,
       },
     });
+
+    // Send enrollment notification
+    await this.notifyEnrollment(userId, course.title);
+
+    return enrollment;
+  }
+
+  /**
+   * Notify enrollment
+   */
+  async notifyEnrollment(userId: string, courseTitle: string) {
+    return this.notificationService.createNotification(
+      userId,
+      NotificationType.COURSE_ENROLLMENT,
+      'Course Enrollment',
+      `You have successfully enrolled in "${courseTitle}". Start learning today!`,
+      AppSource.ELITES,
+    );
   }
 
   /**
@@ -175,9 +195,42 @@ export class ElitesService {
     // If course completed, issue certification
     if (newProgress >= 100) {
       await this.issueCertification(userId, enrollment.courseId);
+      await this.notifyCourseCompletion(userId, enrollment.course.title);
+    } else {
+      // Get the current lesson title
+      const currentLesson = enrollment.course.lessons.find(l => l.id === lessonId);
+      if (currentLesson) {
+        await this.notifyLessonCompletion(userId, currentLesson.title, enrollment.course.title, newProgress);
+      }
     }
 
     return { progress: newProgress, nextLesson: nextLesson?.id };
+  }
+
+  /**
+   * Notify lesson completion
+   */
+  async notifyLessonCompletion(userId: string, lessonTitle: string, courseTitle: string, progress: number) {
+    return this.notificationService.createNotification(
+      userId,
+      NotificationType.LESSON_COMPLETED,
+      'Lesson Completed',
+      `Great job! You completed "${lessonTitle}" in "${courseTitle}". Progress: ${progress}%`,
+      AppSource.ELITES,
+    );
+  }
+
+  /**
+   * Notify course completion
+   */
+  async notifyCourseCompletion(userId: string, courseTitle: string) {
+    return this.notificationService.createNotification(
+      userId,
+      NotificationType.COURSE_COMPLETED,
+      'Course Completed!',
+      `Congratulations! You have successfully completed the course "${courseTitle}". Your certification is now available.`,
+      AppSource.ELITES,
+    );
   }
 
   /**
@@ -209,7 +262,7 @@ export class ElitesService {
     await this.walletEngine.getLedger().credit(
       userId,
       100, // Base reward
-      Prisma.AppSource.ELITES,
+      AppSource.ELITES,
       `Course completion reward`,
       courseId,
     );
@@ -254,7 +307,14 @@ export class ElitesService {
   async submitQuiz(quizId: string, userId: string, answers: number[]) {
     const quiz = await this.prisma.quiz.findUnique({
       where: { id: quizId },
-      include: { questions: true },
+      include: { 
+        questions: true,
+        lesson: {
+          include: {
+            course: true
+          }
+        }
+      },
     });
 
     if (!quiz) {
@@ -276,13 +336,70 @@ export class ElitesService {
       await this.walletEngine.getLedger().credit(
         userId,
         10,
-        Prisma.AppSource.ELITES,
+        AppSource.ELITES,
         `Quiz passed: ${score}%`,
         quizId,
       );
     }
 
+    // Send quiz result notification
+    await this.notifyQuizResult(userId, score, passed, quiz.lesson.course.title);
+
     return { score, passed, correct, total: quiz.questions.length };
+  }
+
+  /**
+   * Notify tutor request
+   */
+  async notifyTutorRequest(tutorId: string, learnerId: string) {
+    const learner = await this.prisma.user.findUnique({
+      where: { id: learnerId },
+      select: { username: true }
+    });
+
+    return this.notificationService.createNotification(
+      tutorId,
+      NotificationType.TUTOR_REQUEST,
+      'New Learner Request',
+      `${learner?.username || 'A learner'} has requested to be your student. Review and accept their request.`,
+      AppSource.ELITES,
+    );
+  }
+
+  /**
+   * Notify tutor accepted
+   */
+  async notifyTutorAccepted(learnerId: string, tutorId: string) {
+    const tutor = await this.prisma.user.findUnique({
+      where: { id: tutorId },
+      select: { username: true }
+    });
+
+    return this.notificationService.createNotification(
+      learnerId,
+      NotificationType.TUTOR_ACCEPTED,
+      'Tutor Request Accepted',
+      `Congratulations! ${tutor?.username || 'Your tutor'} has accepted your request. You can now schedule classes together.`,
+      AppSource.ELITES,
+    );
+  }
+
+  /**
+   * Notify quiz result
+   */
+  async notifyQuizResult(userId: string, score: number, passed: boolean, courseTitle: string) {
+    const status = passed ? 'passed' : 'failed';
+    const message = passed 
+      ? `Congratulations! You ${status} the quiz for "${courseTitle}" with a score of ${score}%. You earned 10 WTH coins!`
+      : `You ${status} the quiz for "${courseTitle}" with a score of ${score}%. Keep practicing!`;
+
+    return this.notificationService.createNotification(
+      userId,
+      passed ? NotificationType.QUIZ_PASSED : NotificationType.QUIZ_FAILED,
+      `Quiz ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+      message,
+      AppSource.ELITES,
+    );
   }
 
   /**
@@ -514,7 +631,7 @@ export class ElitesService {
       throw new Error('Tutor-learner relationship not established');
     }
 
-    return await this.prisma.class.create({
+    const newClass = await this.prisma.class.create({
       data: {
         tutorId: tutor.id,
         learnerId,
@@ -526,6 +643,12 @@ export class ElitesService {
         techStack,
       },
     });
+
+    // Send notifications
+    await this.notifyClassScheduled(tutorId, title, scheduledAt);
+    await this.notifyClassScheduled(learnerId, title, scheduledAt);
+
+    return newClass;
   }
 
   /**
@@ -617,12 +740,17 @@ export class ElitesService {
       return existing;
     }
 
-    return await this.prisma.tutorLearner.create({
+    const relationship = await this.prisma.tutorLearner.create({
       data: {
         tutorId: tutor.id,
         learnerId,
       },
     });
+
+    // Send notification to tutor
+    await this.notifyTutorRequest(tutorId, learnerId);
+
+    return relationship;
   }
 
   /**
@@ -637,7 +765,7 @@ export class ElitesService {
       throw new Error('Tutor not found');
     }
 
-    return await this.prisma.tutorLearner.update({
+    const updated = await this.prisma.tutorLearner.update({
       where: {
         tutorId_learnerId: {
           tutorId: tutor.id,
@@ -649,6 +777,11 @@ export class ElitesService {
         acceptedAt: new Date(),
       },
     });
+
+    // Send notification to learner
+    await this.notifyTutorAccepted(learnerId, tutorId);
+
+    return updated;
   }
 
   /**
@@ -859,7 +992,7 @@ export class ElitesService {
     const mediaSvc = new MediaService(this.prisma as any);
     const { media, signedUploadUrl } = await mediaSvc.createUploadRecord(
       uploaderId,
-      Prisma.AppSource.ELITES,
+      AppSource.ELITES,
       filename,
       mimeType,
       size,
