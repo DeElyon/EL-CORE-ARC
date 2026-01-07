@@ -1,19 +1,26 @@
 import { PrismaService } from '@el-verse/database';
 import { MediaService } from './media.service';
-import * as ffmpeg from 'fluent-ffmpeg';
-import ffmpegPath from '@ffmpeg-installer/ffmpeg';
+import ffmpegPath from 'ffmpeg-static';
 import * as path from 'path';
 import * as fs from 'fs/promises';
-
-try {
-  const ffPath = (ffmpegPath as any)?.path || (ffmpegPath as any)?.default?.path;
-  if (ffPath) (ffmpeg as any).setFfmpegPath(ffPath as string);
-} catch (e) {
-  // ignore if ffmpeg path not available in this environment
-}
+import { execSync, spawn } from 'child_process';
 
 export class ProcessingService {
   constructor(private prisma: PrismaService, private mediaService: MediaService) {}
+
+  private async runFFmpeg(args: string[]): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const ffmpeg = spawn(ffmpegPath, args, { stdio: 'inherit' });
+      ffmpeg.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`FFmpeg process exited with code ${code}`));
+        }
+      });
+      ffmpeg.on('error', reject);
+    });
+  }
 
   async processMedia(mediaId: string) {
     await this.mediaService.markProcessing(mediaId);
@@ -43,22 +50,26 @@ export class ProcessingService {
       }
 
       // Run ffmpeg transcode
-      await new Promise<void>((resolve, reject) => {
-        ffmpeg(localIn)
-          .outputOptions(['-c:v libx264', '-preset veryfast', '-crf 23', '-c:a aac'])
-          .duration(media.duration || undefined)
-          .on('end', () => resolve())
-          .on('error', (err) => reject(err))
-          .save(localOut);
-      });
+      await this.runFFmpeg([
+        '-i', localIn,
+        '-c:v', 'libx264',
+        '-preset', 'veryfast',
+        '-crf', '23',
+        '-c:a', 'aac',
+        ...(media.duration ? ['-t', media.duration.toString()] : []),
+        '-y', // overwrite output files
+        localOut
+      ]);
 
       // Generate thumbnail
-      await new Promise<void>((resolve, reject) => {
-        ffmpeg(localOut)
-          .screenshots({ timestamps: ['5%'], filename: path.basename(thumbOut), folder: path.dirname(thumbOut), size: '320x?' })
-          .on('end', () => resolve())
-          .on('error', (err) => reject(err));
-      });
+      await this.runFFmpeg([
+        '-i', localOut,
+        '-ss', '00:00:05', // seek to 5 seconds
+        '-vframes', '1',   // extract 1 frame
+        '-vf', 'scale=320:-1', // scale to 320px width, maintain aspect ratio
+        '-y', // overwrite output files
+        thumbOut
+      ]);
 
       // In real setup we would upload localOut and thumbOut to S3 and record final URLs.
       // For now construct CDN urls based on storageKey.
