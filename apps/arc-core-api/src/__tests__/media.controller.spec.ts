@@ -1,8 +1,13 @@
 import request from 'supertest';
 import { MediaController } from '../controllers/media.controller';
+import * as sharedUtils from '@el-verse/shared-utils';
 
 const mockProcessing: any = { processMedia: jest.fn().mockResolvedValue({}) };
 const mockMediaService: any = { getDownloadUrl: jest.fn().mockResolvedValue('https://cdn.example.com/m1') };
+
+jest.mock('@el-verse/shared-utils', () => ({
+  enqueueMedia: jest.fn().mockResolvedValue({}),
+}));
 
 describe('MediaController', () => {
   let ctrl: MediaController;
@@ -25,6 +30,6 @@ describe('MediaController', () => {
     process.env.UPLOAD_COMPLETE_TOKEN = 'tok-123';
     const res = await ctrl.uploadComplete('m1', 'tok-123');
     expect(res.accepted).toBe(true);
-    expect(mockProcessing.processMedia).toHaveBeenCalledWith('m1');
+    expect(sharedUtils.enqueueMedia).toHaveBeenCalledWith('m1');
   });
 });
