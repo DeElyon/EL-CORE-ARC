@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "nest start --watch",
-    "start": "nest start",
+    "start": "node dist/apps/arc-core-api/src/main.js",
     "start:local": "TS_NODE_TRANSPILE_ONLY=true ts-node -r tsconfig-paths/register src/main.ts",
     "build": "nest build",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
