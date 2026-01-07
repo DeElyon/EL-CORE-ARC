@@ -2,6 +2,7 @@
   "name": "@el-verse/wallet-engine",
   "version": "0.1.0",
   "private": true,
+  "main": "src/index.ts",
   "scripts": { "test": "jest --passWithNoTests" },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "nest start --watch",
     "start": "nest start",
+    "start:local": "TS_NODE_TRANSPILE_ONLY=true ts-node -r tsconfig-paths/register src/main.ts",
     "build": "nest build",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest --passWithNoTests --config jest.config.cjs"

@@ -5,6 +5,7 @@
   "scripts": {
     "test": "jest --passWithNoTests"
   },
+  "main": "src/index.ts",
   "dependencies": {
     "@el-verse/database": "workspace:*",
     "@nestjs/common": "^10.0.0",

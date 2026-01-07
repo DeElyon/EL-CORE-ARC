@@ -2,6 +2,7 @@
   "name": "@el-verse/database",
   "version": "0.1.0",
   "private": true,
+  "main": "src/index.ts",
   "dependencies": {
     "@prisma/client": "^5.0.0"
   },
